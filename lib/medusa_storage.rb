@@ -1,5 +1,2 @@
 require "medusa_storage/version"
-
-module MedusaStorage
-
-end
+require 'medusa_storage/root_set'
