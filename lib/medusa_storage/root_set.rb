@@ -1,3 +1,6 @@
+require_relative 'root/s3'
+require_relative 'root/filesystem'
+
 class MedusaStorage::RootSet
 
   attr_accessor :root_set

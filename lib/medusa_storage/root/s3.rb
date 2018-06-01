@@ -1,6 +1,8 @@
 #In this type of  MedusaStorage::Root the key is simply the key into the S3 storage bucket.
 # Some additional methods relevant to S3 are provided.
 require 'aws-sdk-s3'
+require_relative '../../root'
+
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   attr_accessor :bucket, :region, :prefix, :aws_access_key_id, :aws_secret_access_key

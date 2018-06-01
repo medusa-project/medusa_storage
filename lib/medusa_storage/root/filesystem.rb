@@ -2,6 +2,8 @@
 # key '' represents the root itself.
 # In addition to the common methods some additional file system specific methods will be provided.
 require 'pathname'
+require_relative '../root'
+
 class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
   attr_accessor :path, :pathname, :real_path
