@@ -9,9 +9,10 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Howard Ding"]
   spec.email         = ["hding2@illinois.edu"]
 
-  spec.summary       = %q{TODO: Write a short summary, because RubyGems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
+  spec.summary       = %q{Paper over different types of storage}
+  spec.description   = %q{Help adapt medusa projects to different kinds of storage, isolating diffences in this code.}
   spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.license       = "University of Illinois/NCSA Open Source License"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -31,4 +32,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.16"
   spec.add_development_dependency "rake", "~> 10.0"
+
+  spec.add_runtime_dependency 'aws-sdk', '~> 3'
 end
