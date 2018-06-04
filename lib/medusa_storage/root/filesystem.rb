@@ -22,10 +22,10 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
       puts file_pathname.to_s
       absolute_path = file_pathname.realpath.to_s
-      raise InvalidFileError.new(name, key) unless absolute_path.match(/^#{self.real_path}\//)
+      raise MedusaStorage::InvalidKeyError.new(name, key) unless absolute_path.match(/^#{self.real_path}\//)
     end
   rescue Errno::ENOENT
-    raise InvalidFileError.new(name, key)
+    raise MedusaStorage::InvalidKeyError.new(name, key)
   end
 
   def size(key)
