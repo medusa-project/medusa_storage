@@ -3,6 +3,7 @@
 # In addition to the common methods some additional file system specific methods will be provided.
 require 'pathname'
 require_relative '../root'
+require_relative '../invalid_key_error'
 
 class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 

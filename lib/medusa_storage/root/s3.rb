@@ -4,6 +4,7 @@ require 'aws-sdk-s3'
 require_relative '../root'
 require 'securerandom'
 require 'fileutils'
+require_relative '../invalid_key_error'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
