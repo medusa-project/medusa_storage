@@ -68,6 +68,13 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     path_to(key).exist?
   end
 
+  def with_input_io(key)
+    f = File.open(path_to(key), 'rb')
+    yield f
+  ensure
+    f.close if f
+  end
+
   protected
 
   def when_directory(key, raise_error_if_not_directory: true)

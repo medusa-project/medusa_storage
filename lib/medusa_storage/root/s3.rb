@@ -43,6 +43,14 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     info(key).content_length
   end
 
+  def with_input_io(key)
+    object = s3_client.get_object(bucket: bucket, key: key)
+    body = object.body
+    yield body
+  ensure
+    body.close if body
+  end
+
   def presigned_get_url(key, args = {})
     presigner.presigned_url(:get_object, {bucket: bucket, key: key, expires_in: 7.days.to_i}.merge(args))
   end
