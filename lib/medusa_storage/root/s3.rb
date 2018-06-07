@@ -2,6 +2,8 @@
 # Some additional methods relevant to S3 are provided.
 require 'aws-sdk-s3'
 require_relative '../root'
+require 'securerandom'
+require 'fileutils'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
@@ -49,6 +51,19 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     yield body
   ensure
     body.close if body
+  end
+
+  def with_input_file(key, tmp_dir: nil)
+    tmp_dir ||= Dir.tmpdir
+    sub_dir = File.join(tmp_dir, SecureRandom.hex(10))
+    FileUtils.mkdir_p(sub_dir)
+    file_name = File.join(sub_dir, File.basename(key))
+    with_input_io(key) do |io|
+      IO.copy_stream(io, file_name)
+    end
+    yield file_name
+  ensure
+    FileUtils.rm_rf(sub_dir) if sub_dir and Dir.exist?(sub_dir)
   end
 
   def presigned_get_url(key, args = {})

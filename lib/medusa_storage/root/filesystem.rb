@@ -75,6 +75,10 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     f.close if f
   end
 
+  def with_input_file(key, tmp_dir: nil)
+    yield path_to(key)
+  end
+
   protected
 
   def when_directory(key, raise_error_if_not_directory: true)
