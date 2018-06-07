@@ -77,7 +77,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   end
 
   def with_input_file(key, tmp_dir: nil)
-    yield path_to(key)
+    yield path_to(key).to_s
   end
 
   protected
