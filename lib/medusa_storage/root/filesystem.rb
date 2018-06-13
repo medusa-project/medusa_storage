@@ -17,14 +17,16 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     self.real_path = self.pathname.realpath.to_s
   end
 
-  #Returns the file system path to the key, respecting symlinks and such, but also does a check
+  #Returns the file system path to the key, respecting symlinks and such, but also optionally does a check
   # to make sure that the target is actually under the root on the filesystem and throws an
   # error if it is not.
-  def path_to(key)
+  def path_to(key, check_path: false)
     return self.pathname if key == '' or key.nil?
     Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
-      absolute_path = file_pathname.realpath.to_s
-      raise MedusaStorage::InvalidKeyError.new(name, key) unless absolute_path.match(/^#{self.real_path}\//)
+      if check_path
+        absolute_path = file_pathname.realpath.to_s
+        raise MedusaStorage::InvalidKeyError.new(name, key) unless absolute_path.match(/^#{self.real_path}\//)
+      end
     end
   rescue Errno::ENOENT
     raise MedusaStorage::InvalidKeyError.new(name, key)
@@ -90,6 +92,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   end
 
   def copy_io_to(key, input_io)
+    path_to(key).dirname.mkpath
     with_output_io(key) do |output_io|
       IO.copy_stream(input_io, output_io)
     end
