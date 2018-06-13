@@ -65,6 +65,11 @@ class MedusaStorage::Root
     raise "subclass responsibility"
   end
 
+  #copy the given io to the key
+  def copy_io_to(key, input_io)
+    raise "subclass responsibility"
+  end
+
   #Remove the content at this key
   def delete_content(key)
     raise "subclass responsibility"

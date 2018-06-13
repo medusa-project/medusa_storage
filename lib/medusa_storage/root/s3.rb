@@ -68,6 +68,10 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     FileUtils.rm_rf(sub_dir) if sub_dir and Dir.exist?(sub_dir)
   end
 
+  def copy_io_to(key, input_io)
+    s3_client.put_object(bucket: bucket, key: key, body: input_io)
+  end
+
   #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.
   def presigned_get_url(key, args = {})
     presigner.presigned_url(:get_object, {bucket: bucket, key: key, expires_in: 7.days.to_i}.merge(args))

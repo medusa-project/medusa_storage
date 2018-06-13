@@ -82,6 +82,19 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     yield path_to(key).to_s
   end
 
+  def with_output_io(key)
+    f = File.open(path_to(key), 'wb')
+    yield f
+  ensure
+    f.close if f
+  end
+
+  def copy_io_to(key, input_io)
+    with_output_io(key) do |output_io|
+      IO.copy_stream(input_io, output_io)
+    end
+  end
+
   def delete_content(key)
     path_to(key).unlink
   end
