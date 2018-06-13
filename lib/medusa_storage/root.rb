@@ -65,4 +65,17 @@ class MedusaStorage::Root
     raise "subclass responsibility"
   end
 
+  #Remove the content at this key
+  def delete_content(key)
+    raise "subclass responsibility"
+  end
+
+  #Remove all content in this root. You probably want to be careful with this - it exists mostly
+  # to facilitate testing. Subclasses may want to implement more efficiently
+  def delete_all_content
+    Parallel.each(subtree_keys('')) do |key|
+      delete_content(key)
+    end
+  end
+
 end

@@ -2,6 +2,7 @@
 # key '' represents the root itself.
 # In addition to the common methods some additional file system specific methods will be provided.
 require 'pathname'
+require 'fileutils'
 require_relative '../root'
 require_relative '../invalid_key_error'
 
@@ -20,6 +21,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   # to make sure that the target is actually under the root on the filesystem and throws an
   # error if it is not.
   def path_to(key)
+    return self.pathname if key == '' or key.nil?
     Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
       puts file_pathname.to_s
       absolute_path = file_pathname.realpath.to_s
@@ -81,6 +83,16 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     yield path_to(key).to_s
   end
 
+  def delete_content(key)
+    path_to(key).unlink
+  end
+
+  def delete_all_content
+    Dir(File.join(path, '*')).each do |dir|
+      FileUtils.rm_rf(dir)
+    end
+  end
+  
   protected
 
   #Execute the block if the given key is a directory, optionally throwing an error if it is not (default is to do so)

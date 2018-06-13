@@ -114,4 +114,8 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     directory_key?(key) ? key : key + '/'
   end
 
+  def delete_content(key)
+    s3_client.delete_object(bucket: bucket, key: key)
+  end
+
 end
