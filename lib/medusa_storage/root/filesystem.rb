@@ -92,7 +92,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
       FileUtils.rm_rf(dir)
     end
   end
-  
+
   protected
 
   #Execute the block if the given key is a directory, optionally throwing an error if it is not (default is to do so)
