@@ -23,7 +23,6 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   def path_to(key)
     return self.pathname if key == '' or key.nil?
     Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
-      puts file_pathname.to_s
       absolute_path = file_pathname.realpath.to_s
       raise MedusaStorage::InvalidKeyError.new(name, key) unless absolute_path.match(/^#{self.real_path}\//)
     end
@@ -88,7 +87,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   end
 
   def delete_all_content
-    Dir(File.join(path, '*')).each do |dir|
+    Dir[File.join(path, '*')].each do |dir|
       FileUtils.rm_rf(dir)
     end
   end
