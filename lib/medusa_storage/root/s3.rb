@@ -31,6 +31,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     @presigner ||= Aws::S3::Presigner.new(client: s3_client)
   end
 
+  #Do a head_object request on the key. This is to support other methods, but may be useful on its own.
   def info(key)
     s3_client.head_object(bucket: bucket, key: key)
   end
@@ -67,6 +68,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     FileUtils.rm_rf(sub_dir) if sub_dir and Dir.exist?(sub_dir)
   end
 
+  #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.
   def presigned_get_url(key, args = {})
     presigner.presigned_url(:get_object, {bucket: bucket, key: key, expires_in: 7.days.to_i}.merge(args))
   end
@@ -91,6 +93,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     return keys
   end
 
+  #internal method to support getting 'file' type objects
   def internal_subtree_keys(directory_key, delimiter: nil)
     keys = Array.new
     continuation_token = nil

@@ -16,9 +16,9 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     self.real_path = self.pathname.realpath.to_s
   end
 
-  #We check to make sure that the content requested really lies beneath this root;
-  #however, we return the path for linking using the given path so that it remains
-  #useable if any symlinks along self.pathname are changed.
+  #Returns the file system path to the key, respecting symlinks and such, but also does a check
+  # to make sure that the target is actually under the root on the filesystem and throws an
+  # error if it is not.
   def path_to(key)
     Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
       puts file_pathname.to_s
@@ -33,6 +33,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     path_to(key).size
   end
 
+  #gives a relative path to full_key from prefix_key
   def relative_path_from(full_key, prefix_key)
     path_to(full_key).relative_path_from(path_to(prefix_key)).to_s
   end
@@ -82,6 +83,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
   protected
 
+  #Execute the block if the given key is a directory, optionally throwing an error if it is not (default is to do so)
   def when_directory(key, raise_error_if_not_directory: true)
     if directory_key?(key)
       yield
