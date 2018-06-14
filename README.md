@@ -65,5 +65,38 @@ broad outlines in place.
 * Metadata beyond mtime and md5_sum. Send as headers to S3 or set on filesystem as appropriate
   and possible. I'm not sure if there is anything else we're really keeping track of here.
 * Tests, of course. They'd be particularly valuable here.
- 
+* Possibly a metadata updater for S3. This is done by copying the object over itself 
+  with new metadata and setting the metadata_directive to 'REPLACE'. See the S3 docs. Note
+  that this may only work for objects < 5GB (above that it looks like you can still make
+  a copy, but have to use the multi-part uploader)
+* I'm not currently specifying Content-Length for S3 - that might turn out to be
+  necessary.
+* uploads over 5GB to S3 can't use put_object, they have to go multipart. So, figure out
+  how to deal with that (will also be a problem with copying, possibly - note that
+  for copying we can potentially use a special method upload_part_copy to copy from
+  an existing object). We might need to bring in rclone for that if we want to keep
+  it simple. It would be aesthetically preferable to use the multipart upload 
+  facility, but in that case there may be issues actually getting the parts. How do
+  we get a ruby IO on just part of a file? If we go the rclone route, then we need to 
+  have it configured for everything, and then there is a legitimate question of why
+  not just use it for as many of these operations as possible?
+  https://www.inkoop.in/blog/upload-a-file-using-multipart-to-glacier-in-ruby/ has
+  some suggestions that may work for the non-glacier case as well.
+  or, it looks like there may be an upload manager in the ruby s3 sdk - I just need
+  to find it if so: https://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu-ruby-sdk.html
+  https://aws.amazon.com/blogs/developer/uploading-files-to-amazon-s3/
+  The difficulty here is that it may only work on files. Something like:
+  s3.bucket('bucket-name').object('key').upload_file('/source/file/path', metadata: {key: value})
+  with s3 = Aws::S3::Resource.new(
+         credentials: Aws::Credentials.new('akid', 'secret'),
+         region: 'us-west-1'
+       )
+  See also upload_stream, (which appears not to be its own method, but a way 
+  of using upload_file??) obj.upload_file do |stream|
+    while input_io
+      stream << input_io
+    end
+  end
+  Actually this appears to be very recently added, so let's update and try again.
+  
 

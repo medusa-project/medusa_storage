@@ -37,6 +37,10 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     Aws::Credentials.new(aws_access_key_id, aws_secret_access_key)
   end
 
+  def s3_object(key)
+    Aws::S3::Resource.new(credentials: s3_credentials, region: region).bucket(bucket).object(key)
+  end
+
   def presigner
     @presigner ||= Aws::S3::Presigner.new(client: s3_client)
   end
