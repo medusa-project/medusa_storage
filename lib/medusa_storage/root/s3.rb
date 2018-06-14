@@ -16,8 +16,8 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   # in rclone the md5_sum is the base64 encoded 128 bit md5 sum
   # and mtime is seconds since the epoch, same as ruby Time.to_i
   AMAZON_HEADERS = {
-      md5_sum: 'x-amz-meta-md5chksum',
-      mtime: 'x-amz-meta-mtime'
+      md5_sum: 'md5chksum',
+      mtime: 'mtime'
   }
 
   def initialize(args = {})

@@ -62,8 +62,8 @@ Just jotting down some things that need attention that I'm skipping over to get 
 broad outlines in place.
 
 * methods to copy/move within a root and to copy from one root to another
-* More generally, metadata. Send as headers to S3 or set on filesystem as appropriate
-  and possible
-
+* Metadata beyond mtime and md5_sum. Send as headers to S3 or set on filesystem as appropriate
+  and possible. I'm not sure if there is anything else we're really keeping track of here.
+* Tests, of course. They'd be particularly valuable here.
  
 
