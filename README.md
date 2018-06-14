@@ -56,5 +56,17 @@ a file, to be yielded to a block (the former is useful for generating fixity che
 the latter for FITS, which doesn't operate nicely on just a stream). 
 See the individual method documentation.
 
+##TODO
+
+Just jotting down some things that need attention that I'm skipping over to get the
+broad outlines in place.
+
+* MD5 check on writing. For S3 set the header so S3 will check automatically. For 
+  filesystem do a post check.
+* Modtime preservation. For S3 set one or more headers to be compatible with rclone/
+  storage gateway. For filesystem just set on the target after copying. 
+* More generally, metadata. Send as headers to S3 or set on filesystem as appropriate.
+* On filesystem set the permissions after writing data.
+
  
 
