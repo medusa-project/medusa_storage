@@ -6,7 +6,7 @@ require_relative '../root'
 require 'securerandom'
 require 'fileutils'
 require_relative '../invalid_key_error'
-require_relative '../../error/md5'
+require_relative '../error/md5'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 

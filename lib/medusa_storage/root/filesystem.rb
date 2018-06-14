@@ -5,7 +5,7 @@ require 'pathname'
 require 'fileutils'
 require_relative '../root'
 require_relative '../invalid_key_error'
-require_relative '../../error/md5'
+require_relative '../error/md5'
 
 class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
