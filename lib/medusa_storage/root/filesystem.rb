@@ -5,6 +5,7 @@ require 'pathname'
 require 'fileutils'
 require_relative '../root'
 require_relative '../invalid_key_error'
+require_relative '../../error/md5'
 
 class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
@@ -22,7 +23,8 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   # error if it is not.
   def path_to(key, check_path: false)
     return self.pathname if key == '' or key.nil?
-    Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
+    #Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
+    self.pathname.join(key).tap do |file_pathname|
       if check_path
         absolute_path = file_pathname.realpath.to_s
         raise MedusaStorage::InvalidKeyError.new(name, key) unless absolute_path.match(/^#{self.real_path}\//)
@@ -34,6 +36,10 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
   def size(key)
     path_to(key).size
+  end
+
+  def md5_sum(key)
+    Digest::MD5.file(path_to(key).to_s).base64digest
   end
 
   #gives a relative path to full_key from prefix_key
@@ -91,11 +97,21 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     f.close if f
   end
 
-  def copy_io_to(key, input_io)
-    path_to(key).dirname.mkpath
-    with_output_io(key) do |output_io|
+  def copy_io_to(key, input_io, md5_sum, metadata = {})
+    target_pathname = path_to(key)
+    target_pathname.dirname.mkpath
+    temp_pathname = target_pathname.dirname.join(Digest::MD5.hexdigest(key))
+    temp_key = temp_pathname.to_s
+    with_output_io(temp_key) do |output_io|
       IO.copy_stream(input_io, output_io)
     end
+    unless md5_sum == self.md5_sum(temp_key)
+      temp_pathname.unlink if temp_pathname.file?
+      raise MedusaStorage::Error::MD5
+    end
+    temp_pathname.chmod(0640)
+    FileUtils.touch(temp_pathname.to_s, mtime: metadata[:mtime]) if metadata[:mtime]
+    FileUtils.move(temp_pathname.to_s, target_pathname.to_s, force: true)
   end
 
   def delete_content(key)

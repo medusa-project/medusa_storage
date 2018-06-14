@@ -20,6 +20,21 @@ class MedusaStorage::Root
     raise "subclass responsibility"
   end
 
+  #return the base64 encoded md5 sum (as used by AWS - note that internally to the collection registry we use the
+  # hex digest)
+  #Note that subclasses may want to reimplement - in some circumstances this might be a look up rather than
+  # a calculation. Or on the filesystem we can use the ruby methods explicitly.
+  def md5_sum(key)
+    md5 = Digest::MD5.new
+    buffer = ''
+    with_input_io(key) do |io|
+      while io.read(65536, buffer)
+        md5 << buffer
+      end
+    end
+    md5.base64digest
+  end
+
   #Return the immediate descendants of the key that represent files/content
   def file_keys(key)
     raise "subclass responsibility"
@@ -66,7 +81,11 @@ class MedusaStorage::Root
   end
 
   #copy the given io to the key
-  def copy_io_to(key, input_io)
+  # Should raise MedusaStorage::Error::MD5 if there is an md5 problem
+  # Ideally metadata will have an mtime: key (expressed in standard ruby Time form)
+  # which will be persisted naturally for the backend. Other keys will be persisted
+  # as possible. In short, the behavior there is not completely well defined yet.
+  def copy_io_to(key, input_io, md5_sum, metadata = {})
     raise "subclass responsibility"
   end
 

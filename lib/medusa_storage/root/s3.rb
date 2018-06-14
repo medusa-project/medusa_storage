@@ -1,14 +1,24 @@
 #In this type of  MedusaStorage::Root the key is simply the key into the S3 storage bucket.
 # Some additional methods relevant to S3 are provided.
 require 'aws-sdk-s3'
+require 'aws-sdk-s3/errors'
 require_relative '../root'
 require 'securerandom'
 require 'fileutils'
 require_relative '../invalid_key_error'
+require_relative '../../error/md5'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   attr_accessor :bucket, :region, :prefix, :aws_access_key_id, :aws_secret_access_key
+
+  #md5_sum and mtime are rclone compatible names
+  # in rclone the md5_sum is the base64 encoded 128 bit md5 sum
+  # and mtime is seconds since the epoch, same as ruby Time.to_i
+  AMAZON_HEADERS = {
+      md5_sum: 'x-amz-meta-md5chksum',
+      mtime: 'x-amz-meta-mtime'
+  }
 
   def initialize(args = {})
     super(args)
@@ -34,6 +44,19 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   #Do a head_object request on the key. This is to support other methods, but may be useful on its own.
   def info(key)
     s3_client.head_object(bucket: bucket, key: key)
+  end
+
+  def metadata(key)
+    info(key).metadata
+  end
+
+  def md5_sum(key)
+    metadata = metadata(key)
+    metadata[AMAZON_HEADERS[:md5_sum]] || super(key)
+  end
+
+  def mtime(key)
+    metadata(key)[AMAZON_HEADERS[:mtime]]
   end
 
   def exist?(key)
@@ -68,8 +91,14 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     FileUtils.rm_rf(sub_dir) if sub_dir and Dir.exist?(sub_dir)
   end
 
-  def copy_io_to(key, input_io)
-    s3_client.put_object(bucket: bucket, key: key, body: input_io)
+  def copy_io_to(key, input_io, md5_sum, metadata = {})
+    metadata_headers = Hash.new
+    args = {bucket: bucket, key: key, body: input_io, content_md5: md5_sum, metadata: metadata_headers}
+    metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum
+    metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
+    s3_client.put_object(args)
+  rescue Aws::S3::Errors::InvalidDigest
+    raise MedusaStorage::Error::MD5
   end
 
   #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.

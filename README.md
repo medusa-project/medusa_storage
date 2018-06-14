@@ -61,12 +61,9 @@ See the individual method documentation.
 Just jotting down some things that need attention that I'm skipping over to get the
 broad outlines in place.
 
-* MD5 check on writing. For S3 set the header so S3 will check automatically. For 
-  filesystem do a post check.
-* Modtime preservation. For S3 set one or more headers to be compatible with rclone/
-  storage gateway. For filesystem just set on the target after copying. 
-* More generally, metadata. Send as headers to S3 or set on filesystem as appropriate.
-* On filesystem set the permissions after writing data.
+* methods to copy/move within a root and to copy from one root to another
+* More generally, metadata. Send as headers to S3 or set on filesystem as appropriate
+  and possible
 
  
 
