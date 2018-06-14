@@ -1,0 +1,3 @@
+module MedusaStorage::Error
+
+end
