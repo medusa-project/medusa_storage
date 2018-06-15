@@ -7,6 +7,7 @@ require 'securerandom'
 require 'fileutils'
 require_relative '../invalid_key_error'
 require_relative '../error/md5'
+require_relative '../etag_calculator'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
@@ -115,18 +116,26 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     raise MedusaStorage::Error::MD5
   end
 
+  AMAZON_PART_SIZE = 5 * 1024 * 1024
+  UPLOAD_BUFFER_SIZE = 64 * 1024
   def copy_io_to_large(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum
     metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
     object = s3_object(key)
+    digester = MedusaStorage::EtagCalculator.new(AMAZON_PART_SIZE)
     buffer = ''
-    result = object.upload_stream(metadata: metadata_headers) do |stream|
-      while input_io.read(65536, buffer)
+    result = object.upload_stream(metadata: metadata_headers, part_size: AMAZON_PART_SIZE) do |stream|
+      while input_io.read(UPLOAD_BUFFER_SIZE, buffer)
         stream << buffer
+        digester << buffer
       end
     end
     raise "Unknown error uploading #{key} to storage root #{name}" unless result
+    #object will now have an ETag (with opening/closing quotes included)
+    # if we calculate an ETag as we go then we can compare - need to coordinate part size and so on
+    puts "Amazon ETag: #{object.etag}"
+    puts "Calculated ETag: #{digester.etag}"
   end
 
   #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.
