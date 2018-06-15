@@ -81,11 +81,15 @@ class MedusaStorage::Root
   end
 
   #copy the given io to the key
-  # Should raise MedusaStorage::Error::MD5 if there is an md5 problem
+  # Should raise MedusaStorage::Error::MD5 if there is an md5 problem.
+  # The size argument is present because the implementation might have to
+  # dispatch on it and it is not necessarily obtainable from the io,
+  # but you should be able to pass nil, in which case the implementation should
+  # just assume that it needs to invoke code for the largest thing it can handle.
   # Ideally metadata will have an mtime: key (expressed in standard ruby Time form)
   # which will be persisted naturally for the backend. Other keys will be persisted
   # as possible. In short, the behavior there is not completely well defined yet.
-  def copy_io_to(key, input_io, md5_sum, metadata = {})
+  def copy_io_to(key, input_io, md5_sum, size, metadata = {})
     raise "subclass responsibility"
   end
 

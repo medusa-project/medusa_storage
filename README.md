@@ -98,5 +98,20 @@ broad outlines in place.
     end
   end
   Actually this appears to be very recently added, so let's update and try again.
+  upload_stream appears to work fine, except that I don't see how to get it to do
+  an md5 check. If we insist on knowing the size, we could dispatch on it before, use
+  this only for large files, upload, then do an md5 check afterward on the uploaded
+  content. Time consuming, but safe. Or, does the multipart uploader handle this
+  automatically?
+  Note that the Etag computed by S3 for a simple upload is the md5 sum. For a
+  multipart upload, it is formed by taking the md5sum of each part, representing
+  in binary form, concatenating in order, taking the md5 of that string, and 
+  appending a '-' and then the part count. So no easy way to get at it, or to
+  give AWS a single md5 sum to check against at the end. So recomputing it after
+  the upload may be the only way to go here.
+  Note that the copy_to method on these objects allows for multipart copying of
+  objects, possibly with metadata replacement. So this might be useful for us.
+  Actually it should be fairly easy to generate that ETag as we go along, but
+  it's unclear yet if there is benefit to doing so. 
   
 

@@ -97,7 +97,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     f.close if f
   end
 
-  def copy_io_to(key, input_io, md5_sum, metadata = {})
+  def copy_io_to(key, input_io, md5_sum, size, metadata = {})
     target_pathname = path_to(key)
     target_pathname.dirname.mkpath
     temp_pathname = target_pathname.dirname.join(Digest::MD5.hexdigest(key))

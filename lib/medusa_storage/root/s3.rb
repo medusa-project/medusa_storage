@@ -95,7 +95,17 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     FileUtils.rm_rf(sub_dir) if sub_dir and Dir.exist?(sub_dir)
   end
 
-  def copy_io_to(key, input_io, md5_sum, metadata = {})
+  AMAZON_CUTOFF_SIZE = 5 * 1024 * 1024 * 1024
+
+  def copy_io_to(key, input_io, md5_sum, size, metadata = {})
+    if size.nil? or size >= AMAZON_CUTOFF_SIZE
+      copy_io_to_large(key, input_io, md5_sum, metadata)
+    else
+      copy_io_to_small(key, input_io, md5_sum, metadata)
+    end
+  end
+
+  def copy_io_to_small(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new
     args = {bucket: bucket, key: key, body: input_io, content_md5: md5_sum, metadata: metadata_headers}
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum
@@ -103,6 +113,20 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     s3_client.put_object(args)
   rescue Aws::S3::Errors::InvalidDigest
     raise MedusaStorage::Error::MD5
+  end
+
+  def copy_io_to_large(key, input_io, md5_sum, metadata = {})
+    metadata_headers = Hash.new
+    metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum
+    metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
+    object = s3_object(key)
+    buffer = ''
+    result = object.upload_stream(metadata: metadata_headers) do |stream|
+      while input_io.read(65536, buffer)
+        stream << buffer
+      end
+    end
+    raise "Unknown error uploading #{key} to storage root #{name}" unless result
   end
 
   #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.
