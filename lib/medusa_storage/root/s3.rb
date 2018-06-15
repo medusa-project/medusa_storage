@@ -136,6 +136,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     # if we calculate an ETag as we go then we can compare - need to coordinate part size and so on
     puts "Amazon ETag: #{object.etag}"
     puts "Calculated ETag: #{digester.etag}"
+    digester
   end
 
   #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.

@@ -7,13 +7,14 @@ require 'base64'
 require 'digest'
 class MedusaStorage::EtagCalculator
 
-  attr_accessor :part_size, :active_digest, :digests, :bytes_to_go
+  attr_accessor :part_size, :active_digest, :digests, :bytes_to_go, :total_bytes
 
   def initialize(part_size)
     self.part_size = part_size
     self.digests = Array.new
     self.active_digest = nil
     self.bytes_to_go = 0
+    self.total_bytes = 0
   end
 
   #It's clearest to define this recursively
@@ -32,12 +33,14 @@ class MedusaStorage::EtagCalculator
       #put part of the string on the current digester and recall this method with the rest
       io = StringIO.new(string)
       self.active_digest << io.read(bytes_to_go)
+      self.total_bytes += bytes_to_go
       self.bytes_to_go = 0
       self << io.read
     else
       #put all of the string on the current digester and adjust bytes to go
       self.active_digest << string
       self.bytes_to_go -= content_length
+      self.total_bytes += content_length
     end
   end
 
