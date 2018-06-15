@@ -24,7 +24,7 @@ class MedusaStorage::EtagCalculator
       #do nothing if no content is given
     elsif bytes_to_go.zero?
       #In this case we're done with the current digester (if present), so make a new active one
-      # and recall this method.
+      # and recall this method. This will be where the process starts, given our initialization.
       self.bytes_to_go = part_size
       self.active_digest = Digest::MD5.new
       self.digests << active_digest
