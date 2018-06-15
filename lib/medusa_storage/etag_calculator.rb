@@ -19,11 +19,11 @@ class MedusaStorage::EtagCalculator
 
   #It's clearest to define this recursively
   def <<(string)
-    content_length = string.length
+    content_length = string.bytesize
     if content_length.zero?
       #do nothing if no content is given
     elsif bytes_to_go.zero?
-      #In this case we're done with the current digester, so make a new active one
+      #In this case we're done with the current digester (if present), so make a new active one
       # and recall this method.
       self.bytes_to_go = part_size
       self.active_digest = Digest::MD5.new
@@ -31,7 +31,7 @@ class MedusaStorage::EtagCalculator
       self << string
     elsif content_length > bytes_to_go
       #put part of the string on the current digester and recall this method with the rest
-      io = StringIO.new(string)
+      io = StringIO.new(string, 'rb')
       self.active_digest << io.read(bytes_to_go)
       self.total_bytes += bytes_to_go
       self.bytes_to_go = 0
