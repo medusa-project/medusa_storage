@@ -123,6 +123,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum
     metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
     object = s3_object(key)
+    object_already_exists = object.exists?
     digester = MedusaStorage::EtagCalculator.new(AMAZON_PART_SIZE)
     buffer = ''
     result = object.upload_stream(metadata: metadata_headers, part_size: AMAZON_PART_SIZE) do |stream|
@@ -132,11 +133,12 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
       end
     end
     raise "Unknown error uploading #{key} to storage root #{name}" unless result
-    #object will now have an ETag (with opening/closing quotes included)
-    # if we calculate an ETag as we go then we can compare - need to coordinate part size and so on
-    puts "Amazon ETag: #{object.etag}"
-    puts "Calculated ETag: #{digester.etag}"
-    digester
+    unless object.etag == digester.etag
+      #delete if the object didn't already exist and is there, i.e. if somehow it got uploaded
+      # incorrectly. I don't think we should be able to get here, but just in case.
+      object.delete if !object_already_exists and object.exists?
+      raise MedusaStorage::Error::MD5
+    end
   end
 
   #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.
