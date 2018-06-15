@@ -2,7 +2,8 @@
 # This is found by computing the binary md5 of each part, concatenating,
 # taking the MD5 hex digest of the string, appending '-' and the part count.
 # We are assuming here (as in our usage) that each part except the last
-# has the same size.
+# has the same size. Essentially, this is made to fit with the
+# Aws::S3::Object.upload_stream method.
 require 'base64'
 require 'digest'
 class MedusaStorage::EtagCalculator
