@@ -49,7 +49,7 @@ class MedusaStorage::EtagCalculator
     binary_digests = digests.collect do |d|
       Base64.decode64(d.base64digest)
     end
-    "\"#{Digest::MD5.hexdigest(binary_digests.join())}-#{digests.count}\""
+    %Q("#{Digest::MD5.hexdigest(binary_digests.join())}-#{digests.count}")
   end
 
 end
