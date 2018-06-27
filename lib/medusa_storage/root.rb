@@ -38,7 +38,7 @@ class MedusaStorage::Root
   end
 
   def hex_md5_sum(key)
-    Base64.decode64(md5_sum(key)).to_hex_string
+    Base64.decode64(md5_sum(key)).to_hex_string(false)
   end
 
   def mtime(key)
