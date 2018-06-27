@@ -7,6 +7,8 @@
 # We'll try to collect here the interface that any subclass should satisfy. Subclasses may have their own
 # unique methods as well as appropriate. For example, S3 is able to generate presigned urls to content, or
 # the filesystem can produce an actual path to a file.
+require 'base64'
+require 'hex_string'
 class MedusaStorage::Root
 
   attr_accessor :name
@@ -33,6 +35,10 @@ class MedusaStorage::Root
       end
     end
     md5.base64digest
+  end
+
+  def hex_md5_sum(key)
+    Base64.decode64(md5_sum(key)).to_hex_string
   end
 
   def mtime(key)
