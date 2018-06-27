@@ -103,7 +103,8 @@ class MedusaStorage::Root
   # and if so invoke a copy directly on that system.
   def copy_content_to(key, source_root, source_key, metadata = {})
     source_root.with_input_io(source_key) do |io|
-      copy_io_to(key, io, source_root.md5_sum(source_key), source_root.size(source_key), metadata)
+      copy_io_to(key, io, source_root.md5_sum(source_key), source_root.size(source_key),
+                 {mtime: source_root.mtime(source_key)}.merge(metadata))
     end
   end
 
