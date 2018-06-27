@@ -136,6 +136,9 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     unless object.etag == digester.etag
       #delete if the object didn't already exist and is there, i.e. if somehow it got uploaded
       # incorrectly. I don't think we should be able to get here, but just in case.
+      # TODO - we might be able to make this more robust by checking versioning, using the
+      # S3 mod time, etc. I.e. record before hand like we do existence and then only delete
+      # if changed.
       object.delete if !object_already_exists and object.exists?
       raise MedusaStorage::Error::MD5
     end

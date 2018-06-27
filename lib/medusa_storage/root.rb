@@ -93,6 +93,16 @@ class MedusaStorage::Root
     raise "subclass responsibility"
   end
 
+  #copy content from a key in one source root to a key in another
+  # a generic implementation is provided, but subclassess may override, e.g.
+  # S3 might look to see if the target and source are both on the same S3 system
+  # and if so invoke a copy directly on that system.
+  def copy_content_to(key, source_root, source_key)
+    source_root.with_input_io(source_key) do |io|
+      copy_io_to(key, io, source_root.md5_sum(source_key), source_root.size(source_key))
+    end
+  end
+
   #Remove the content at this key
   def delete_content(key)
     raise "subclass responsibility"
