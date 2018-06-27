@@ -23,7 +23,6 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   # error if it is not.
   def path_to(key, check_path: false)
     return self.pathname if key == '' or key.nil?
-    #Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
     self.pathname.join(key).tap do |file_pathname|
       if check_path
         absolute_path = file_pathname.realpath.to_s
@@ -40,6 +39,10 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
   def md5_sum(key)
     Digest::MD5.file(path_to(key).to_s).base64digest
+  end
+
+  def mtime(key)
+    path_to(key).mtime
   end
 
   #gives a relative path to full_key from prefix_key

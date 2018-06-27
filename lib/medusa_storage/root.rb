@@ -35,6 +35,10 @@ class MedusaStorage::Root
     md5.base64digest
   end
 
+  def mtime(key)
+    raise "subclass responsibility"
+  end
+
   #Return the immediate descendants of the key that represent files/content
   def file_keys(key)
     raise "subclass responsibility"
