@@ -22,7 +22,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   #Returns the file system path to the key, respecting symlinks and such, but also optionally does a check
   # to make sure that the target is actually under the root on the filesystem and throws an
   # error if it is not.
-  def path_to(key, check_path: false)
+  def path_to(key, check_path: true)
     return self.pathname if key == '' or key.nil?
     self.pathname.join(key).tap do |file_pathname|
       if check_path
