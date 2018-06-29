@@ -6,6 +6,7 @@ require 'fileutils'
 require_relative '../root'
 require_relative '../invalid_key_error'
 require_relative '../error/md5'
+require_relative '../error/invalid_directory'
 
 class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
@@ -134,7 +135,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     if directory_key?(key)
       yield
     else
-      raise "Provided key is not a directory" if raise_error_if_not_directory
+      raise MedusaStorage::Error::InvalidDirectory.new(key) if raise_error_if_not_directory
     end
   end
 
