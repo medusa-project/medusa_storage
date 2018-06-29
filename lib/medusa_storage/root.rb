@@ -60,6 +60,14 @@ class MedusaStorage::Root
     raise "subclass responsibility"
   end
 
+  #Return all descendants of the key that represent files/content, but without the prefix, i.e.
+  # relative to the given key
+  def unprefixed_subtree_keys(key)
+    prefixed_keys = subtree_keys(key)
+    prefix = key.end_with?('/') ? key : key + '/'
+    prefixed_keys.collect {|k| k.sub(/^#{prefix}/, '')}
+  end
+
   #Answer if key represents a directory
   def directory_key?(key)
     raise "subclass responsibility"
