@@ -127,6 +127,12 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     path_to(key).unlink
   end
 
+  #We override this to use the file system facilities to delete, which also ensures that directories will
+  # get deleted, which the superclass method can't do.
+  def delete_tree(key)
+    FileUtils.rm_rf(path_to(key))
+  end
+
   def delete_all_content
     Dir[File.join(path, '*')].each do |dir|
       FileUtils.rm_rf(dir)
