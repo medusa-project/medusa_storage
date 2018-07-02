@@ -109,7 +109,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     target_pathname.dirname.mkpath
     key_md5_sum = Digest::MD5.hexdigest(key)
     temp_pathname = target_pathname.dirname.join(key_md5_sum)
-    File.open(tmp_pathname.to_s, 'wb') do |temp_file|
+    File.open(temp_pathname.to_s, 'wb') do |temp_file|
       IO.copy_stream(input_io, temp_file)
     end
     unless md5_sum == Digest::MD5.file(temp_pathname.to_s).base64digest
