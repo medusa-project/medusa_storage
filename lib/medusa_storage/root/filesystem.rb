@@ -109,17 +109,18 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     target_pathname.dirname.mkpath
     key_md5_sum = Digest::MD5.hexdigest(key)
     temp_pathname = target_pathname.dirname.join(key_md5_sum)
-    temp_key = File.join(File.dirname(key), '.' + key_md5_sum)
-    with_output_io(temp_key) do |output_io|
-      IO.copy_stream(input_io, output_io)
+    File.open(tmp_pathname.to_s, 'wb') do |temp_file|
+      IO.copy_stream(input_io, temp_file)
     end
-    unless md5_sum == self.md5_sum(temp_key)
+    unless md5_sum == Digest::MD5.file(temp_file).base64digest
       temp_pathname.unlink if temp_pathname.file?
       raise MedusaStorage::Error::MD5
     end
     temp_pathname.chmod(0640)
     FileUtils.touch(temp_pathname.to_s, mtime: metadata[:mtime]) if metadata[:mtime]
     FileUtils.move(temp_pathname.to_s, target_pathname.to_s, force: true)
+  ensure
+    temp_pathname.unlink if temp_pathname and temp_pathname.file?
   end
 
   def delete_content(key)
