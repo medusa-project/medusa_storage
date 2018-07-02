@@ -22,9 +22,12 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   #Returns the file system path to the key, respecting symlinks and such, but also optionally does a check
   # to make sure that the target is actually under the root on the filesystem and throws an
   # error if it is not.
-  def path_to(key, check_path: true)
+  def path_to(key, check_path: false)
     return self.pathname if key == '' or key.nil?
-    self.pathname.join(key).tap do |file_pathname|
+    #Note that we explicitly avoid pathname.join here - if the argument is absolute then something
+    # unexpected happens, e.g. self.pathname.join('/') yields '/', not self.pathname + '/'.
+    # File.join behaves more intuitively.
+    Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
       if check_path
         absolute_path = file_pathname.realpath.to_s
         raise MedusaStorage::InvalidKeyError.new(name, key) unless absolute_path.match(/^#{self.real_path}\//)

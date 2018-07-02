@@ -4,6 +4,8 @@
 # from some directory path in a filesystem, or amazon keys in a given bucket and possibly with a prefix. Anything
 # that can fit into that paradigm could work, though we specifically have in mind filesystems and AWS S3.
 #
+# It is undefined what happens if a key either starts with '/' or contains consecutive '/' characters.
+#
 # We'll try to collect here the interface that any subclass should satisfy. Subclasses may have their own
 # unique methods as well as appropriate. For example, S3 is able to generate presigned urls to content, or
 # the filesystem can produce an actual path to a file.
