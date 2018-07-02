@@ -124,6 +124,12 @@ class MedusaStorage::Root
     end
   end
 
+  #Write the given string to the given key
+  def write_string_to(key, string, mtime: nil)
+    mtime ||= Time.now
+    copy_io_to(key, StringIO.new(string), Digest::MD5.base64digest(string), string.length, mtime: mtime)
+  end
+
   #Remove the content at this key
   def delete_content(key)
     raise "subclass responsibility"
