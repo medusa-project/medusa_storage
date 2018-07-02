@@ -112,7 +112,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     File.open(tmp_pathname.to_s, 'wb') do |temp_file|
       IO.copy_stream(input_io, temp_file)
     end
-    unless md5_sum == Digest::MD5.file(temp_file).base64digest
+    unless md5_sum == Digest::MD5.file(temp_pathname.to_s).base64digest
       temp_pathname.unlink if temp_pathname.file?
       raise MedusaStorage::Error::MD5
     end
