@@ -135,6 +135,18 @@ class MedusaStorage::Root
     raise "subclass responsibility"
   end
 
+  #If a file key then delete its content; if a directory key then delete all content under it
+  # Subclasses may want to override for efficiency
+  def delete_tree(key)
+    if directory_key?(key)
+      Parallel.each(subtree_keys(key)) do |content_key|
+        delete_content(content_key)
+      end
+    else
+      delete_content(key)
+    end
+  end
+
   #Remove all content in this root. You probably want to be careful with this - it exists mostly
   # to facilitate testing. Subclasses may want to implement more efficiently
   def delete_all_content
