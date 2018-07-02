@@ -109,9 +109,7 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     target_pathname.dirname.mkpath
     key_md5_sum = Digest::MD5.hexdigest(key)
     temp_pathname = target_pathname.dirname.join(key_md5_sum)
-    puts temp_pathname.to_s
-    temp_key = File.join(File.dirname(key), key_md5_sum)
-    puts temp_key
+    temp_key = File.join(File.dirname(key), '.' + key_md5_sum)
     with_output_io(temp_key) do |output_io|
       IO.copy_stream(input_io, output_io)
     end
