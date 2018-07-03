@@ -124,6 +124,16 @@ class MedusaStorage::Root
     end
   end
 
+  #copy an entire tree. We take each file in the source_key subtree and use its unprefixed path
+  # at the rest of the path under the target key. This is intended for small and/or test trees,
+  # and could use some robustification for more general use. E.g. use parallel, check for existing
+  # content, handle interruption, etc. Also some root types may be able to do this more efficiently.
+  def copy_tree_to(key, source_root, source_key)
+    source_root.unprefixed_subtree_keys(source_key).each do |unprefixed_key|
+      copy_content_to(File.join(key, unprefixed_key), source_root, File.join(source_key, unprefixed_key))
+    end
+  end
+
   #Write the given string to the given key
   def write_string_to(key, string, mtime: nil)
     mtime ||= Time.now
