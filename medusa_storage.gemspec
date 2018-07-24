@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Paper over different types of storage}
   spec.description   = %q{Help adapt medusa projects to different kinds of storage, isolating diffences in this code.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = "https://github.com/medusa-project/medusa_storage"
   spec.license       = "University of Illinois/NCSA Open Source License"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
