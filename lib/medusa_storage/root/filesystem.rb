@@ -98,7 +98,9 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
   end
 
   def with_output_io(key)
-    f = File.open(path_to(key), 'wb')
+    target_pathname = path_to(key)
+    target_pathname.dirname.mkpath
+    f = File.open(target_pathname, 'wb')
     yield f
   ensure
     f.close if f
