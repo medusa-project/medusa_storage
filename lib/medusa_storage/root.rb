@@ -107,6 +107,8 @@ class MedusaStorage::Root
 
   #copy the given io to the key
   # Should raise MedusaStorage::Error::MD5 if there is an md5 problem.
+  # If the MD5 is unknown then pass nil. This will result in checks that use
+  # the md5 being skipped and no md5 being persisted.
   # The size argument is present because the implementation might have to
   # dispatch on it and it is not necessarily obtainable from the io,
   # but you should be able to pass nil, in which case the implementation should

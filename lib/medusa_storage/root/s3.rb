@@ -112,8 +112,9 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   def copy_io_to_small(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new
-    args = {bucket: bucket, key: key, body: input_io, content_md5: md5_sum, metadata: metadata_headers}
-    metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum
+    args = {bucket: bucket, key: key, body: input_io, metadata: metadata_headers}
+    args.merge!(content_md5: md5_sum) if md5_sum
+    metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
     metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
     s3_client.put_object(args)
   rescue Aws::S3::Errors::InvalidDigest
@@ -124,7 +125,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   UPLOAD_BUFFER_SIZE = 64 * 1024
   def copy_io_to_large(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new
-    metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum
+    metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
     metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
     object = s3_object(key)
     object_already_exists = object.exists?
