@@ -46,6 +46,10 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     @presigner ||= Aws::S3::Presigner.new(client: s3_client)
   end
 
+  def root_type
+    :s3
+  end
+
   #Do a head_object request on the key. This is to support other methods, but may be useful on its own.
   def info(key)
     s3_client.head_object(bucket: bucket, key: key)

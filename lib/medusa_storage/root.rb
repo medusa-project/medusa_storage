@@ -19,6 +19,11 @@ class MedusaStorage::Root
     self.name = args[:name]
   end
 
+  #Return a symbol indicating the type of this root
+  def root_type
+    raise "subclass responsibility"
+  end
+
   #Return the size of the content at key
   def size(key)
     raise "subclass responsibility"
