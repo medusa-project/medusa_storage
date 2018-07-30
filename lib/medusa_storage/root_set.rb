@@ -32,4 +32,8 @@ class MedusaStorage::RootSet
     self.root_set.values
   end
 
+  def all_root_names
+    self.root_set.keys
+  end
+
 end
