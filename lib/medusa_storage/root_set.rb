@@ -14,7 +14,7 @@ class MedusaStorage::RootSet
       root_set[root_config[:name]] = MedusaStorage::RootFactory.create_root(root_config)
     end
   end
-  
+
   def at(root_name)
     root_set[root_name]
   end

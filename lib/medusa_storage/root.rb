@@ -147,6 +147,13 @@ class MedusaStorage::Root
     copy_io_to(key, StringIO.new(string), Digest::MD5.base64digest(string), string.length, mtime: mtime)
   end
 
+  #The content of the key as a string - clearly care should be used if it could be large
+  def as_string(key)
+    with_input_io(key) do |io|
+      io.read
+    end
+  end
+
   #Remove the content at this key
   def delete_content(key)
     raise "subclass responsibility"
