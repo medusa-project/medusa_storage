@@ -1,5 +1,14 @@
 #In this type of  MedusaStorage::Root the key is simply the key into the S3 storage bucket.
 # Some additional methods relevant to S3 are provided.
+#
+# TODO - I probably need to add an endpoint parameter to allow use with minio for testing, e.g.
+# endpoint: 'http://localhost:9000'. This would go in both the client and the resource calls. Note that
+# we can just use client: client to create the resource - under the hood it just makes a new client anyway.
+# Then rejigger the client creation to add this in if it is set.
+# Note that we might not want to cache the clients/presigners etc. but just create new ones each time. I'm not sure
+# if there is any stateful stuff going on that might go awry, and since that is true it is probably better to
+# create new ones.
+
 require 'aws-sdk-s3'
 require 'aws-sdk-s3/errors'
 require_relative '../root'
