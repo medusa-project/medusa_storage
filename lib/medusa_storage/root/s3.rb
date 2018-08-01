@@ -15,7 +15,8 @@ require_relative '../etag_calculator'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
-  attr_accessor :endpoint, :bucket, :region, :prefix, :aws_access_key_id, :aws_secret_access_key
+  attr_accessor :endpoint, :bucket, :region, :prefix, :aws_access_key_id, :aws_secret_access_key,
+                :client_args
 
   #md5_sum and mtime are rclone compatible names
   # in rclone the md5_sum is the base64 encoded 128 bit md5 sum
@@ -33,13 +34,18 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     self.prefix = args[:prefix] || ''
     self.aws_access_key_id = args[:aws_access_key_id]
     self.aws_secret_access_key = args[:aws_secret_access_key]
+    initialize_client_args
   end
 
   def s3_client
+    Aws::S3::Client.new(client_args)
+  end
+
+  def initialize_client_args
     args = {credentials: s3_credentials}
     args.merge!(endpoint: endpoint) if endpoint
     args.merge!(region: region) if region
-    Aws::S3::Client.new(args)
+    self.client_args = args
   end
 
   def s3_credentials
@@ -131,6 +137,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   AMAZON_PART_SIZE = 5 * 1024 * 1024
   UPLOAD_BUFFER_SIZE = 64 * 1024
+
   def copy_io_to_large(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
