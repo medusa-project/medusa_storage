@@ -36,8 +36,9 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def s3_client
-    args = {region: region, credentials: s3_credentials}
+    args = {credentials: s3_credentials}
     args.merge!(endpoint: endpoint) if endpoint
+    args.merge!(region: region) if region
     Aws::S3::Client.new(args)
   end
 
