@@ -173,8 +173,8 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     keys = Array.new
     continuation_token = nil
     loop do
-      results = s3_client.list_objects_v2(bucket: bucket, prefix: ensure_directory_key(directory_key), continuation_token: continuation_token, delimiter: delimiter)
-      keys += results.common_prefixes.collect(&:key)
+      results = s3_client.list_objects_v2(bucket: bucket, prefix: ensure_directory_key(directory_key), continuation_token: continuation_token, delimiter: '/')
+      keys += results.common_prefixes.collect(&:prefix)
       continuation_token = results.next_continuation_token
       break if continuation_token.nil?
     end
