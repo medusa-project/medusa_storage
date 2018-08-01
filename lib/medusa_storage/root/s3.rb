@@ -1,13 +1,9 @@
 #In this type of  MedusaStorage::Root the key is simply the key into the S3 storage bucket.
 # Some additional methods relevant to S3 are provided.
 #
-# TODO - I probably need to add an endpoint parameter to allow use with minio for testing, e.g.
-# endpoint: 'http://localhost:9000'. This would go in both the client and the resource calls. Note that
-# we can just use client: client to create the resource - under the hood it just makes a new client anyway.
-# Then rejigger the client creation to add this in if it is set.
-# Note that we might not want to cache the clients/presigners etc. but just create new ones each time. I'm not sure
-# if there is any stateful stuff going on that might go awry, and since that is true it is probably better to
-# create new ones.
+
+#TODO - actually respect the prefix argument in all cases. I probably need to get to the point of
+# writing tests to make sure that this really happens.
 
 require 'aws-sdk-s3'
 require 'aws-sdk-s3/errors'
@@ -20,7 +16,7 @@ require_relative '../etag_calculator'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
-  attr_accessor :bucket, :region, :prefix, :aws_access_key_id, :aws_secret_access_key
+  attr_accessor :endpoint, :bucket, :region, :prefix, :aws_access_key_id, :aws_secret_access_key
 
   #md5_sum and mtime are rclone compatible names
   # in rclone the md5_sum is the base64 encoded 128 bit md5 sum
@@ -32,6 +28,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   def initialize(args = {})
     super(args)
+    self.endpoint = args[:endpoint]
     self.bucket = args[:bucket]
     self.region = args[:region]
     self.prefix = args[:prefix] || ''
@@ -40,7 +37,9 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def s3_client
-    @s3_client ||= Aws::S3::Client.new(region: region, credentials: s3_credentials)
+    args = {region: region, credentials: s3_credentials}
+    args.merge!(endpoint: endpoint) if endpoint
+    Aws::S3::Client.new(args)
   end
 
   def s3_credentials
@@ -48,11 +47,11 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def s3_object(key)
-    Aws::S3::Resource.new(credentials: s3_credentials, region: region).bucket(bucket).object(key)
+    Aws::S3::Resource.new(client: s3_client).bucket(bucket).object(key)
   end
 
   def presigner
-    @presigner ||= Aws::S3::Presigner.new(client: s3_client)
+    Aws::S3::Presigner.new(client: s3_client)
   end
 
   def root_type
