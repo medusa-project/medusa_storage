@@ -34,11 +34,11 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     Pathname.new(File.join(self.pathname.to_s, key)).tap do |file_pathname|
       if check_path
         absolute_path = file_pathname.realpath.to_s
-        raise MedusaStorage::InvalidKeyError.new(name, key) unless absolute_path.match(/^#{self.real_path}\//)
+        raise MedusaStorage::InvalidKeyError.new(self, key) unless absolute_path.match(/^#{self.real_path}\//)
       end
     end
   rescue Errno::ENOENT
-    raise MedusaStorage::InvalidKeyError.new(name, key)
+    raise MedusaStorage::InvalidKeyError.new(self, key)
   end
 
   def size(key)
@@ -55,7 +55,8 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
   #gives a relative path to full_key from prefix_key
   def relative_path_from(full_key, prefix_key)
-    path_to(full_key).relative_path_from(path_to(prefix_key)).to_s
+    relative_path = path_to(full_key).relative_path_from(path_to(prefix_key)).to_s
+    relative_path == '.' ? '' : relative_path
   end
 
   def file_keys(key)

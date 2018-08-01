@@ -24,11 +24,18 @@ GEM
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.0)
     aws-sigv4 (1.0.2)
+    docile (1.1.5)
     hex_string (1.0.1)
     jmespath (1.4.0)
+    json (2.1.0)
     minitest (5.10.3)
     parallel (1.12.1)
     rake (10.5.0)
+    simplecov (0.15.1)
+      docile (~> 1.1.0)
+      json (>= 1.8, < 3)
+      simplecov-html (~> 0.10.0)
+    simplecov-html (0.10.2)
 
 PLATFORMS
   ruby
@@ -38,6 +45,7 @@ DEPENDENCIES
   medusa_storage!
   minitest
   rake (~> 10.0)
+  simplecov
 
 BUNDLED WITH
    1.16.0
