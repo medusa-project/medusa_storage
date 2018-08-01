@@ -1,6 +1,5 @@
 #In this type of  MedusaStorage::Root the key is simply the key into the S3 storage bucket.
 # Some additional methods relevant to S3 are provided.
-#
 
 #TODO - actually respect the prefix argument in all cases. I probably need to get to the point of
 # writing tests to make sure that this really happens.
