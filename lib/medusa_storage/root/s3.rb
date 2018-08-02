@@ -16,7 +16,7 @@ require_relative '../etag_calculator'
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   attr_accessor :endpoint, :bucket, :region, :prefix, :aws_access_key_id, :aws_secret_access_key,
-                :client_args
+                :force_path_style, :client_args
 
   #md5_sum and mtime are rclone compatible names
   # in rclone the md5_sum is the base64 encoded 128 bit md5 sum
@@ -34,6 +34,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     self.prefix = args[:prefix] || ''
     self.aws_access_key_id = args[:aws_access_key_id]
     self.aws_secret_access_key = args[:aws_secret_access_key]
+    self.force_path_style = args[:force_path_style] || false
     initialize_client_args
   end
 
@@ -42,7 +43,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def initialize_client_args
-    args = {credentials: s3_credentials}
+    args = {credentials: s3_credentials, force_path_style: force_path_style}
     args.merge!(endpoint: endpoint) if endpoint
     args.merge!(region: region) if region
     self.client_args = args

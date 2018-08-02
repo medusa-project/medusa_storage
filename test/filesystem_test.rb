@@ -22,10 +22,6 @@ class FilesystemTest < Minitest::Test
     assert_equal :filesystem, @root.root_type
   end
 
-  def test_name
-    assert_equal 'test', @root.name
-  end
-
   def test_path_construction_without_checks
     assert_equal Pathname.new(File.join(@test_dir, 'key')), @root.path_to('key')
     assert_equal Pathname.new(File.join(@test_dir, 'path/with/segments')), @root.path_to('path/with/segments')
@@ -203,6 +199,9 @@ class FilesystemTest < Minitest::Test
 
   ###
   # Tests for methods in the MedusaStorage::Root base class not overriden
+  def test_name
+    assert_equal 'test', @root.name
+  end
 
   def test_hex_md5_sum
     assert_equal 'c84f70d1baf964207d7519bf21602c24', @root.hex_md5_sum('joe.txt')
