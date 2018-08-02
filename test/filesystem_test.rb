@@ -20,6 +20,7 @@ class FilesystemTest < Minitest::Test
 
   def test_root_type
     assert_equal :filesystem, @root.root_type
+    assert @root.is_a?(MedusaStorage::Root::Filesystem)
   end
 
   def test_path_construction_without_checks

@@ -35,12 +35,18 @@ module MinioHelper
     File.join(storage_directory, bucket)
   end
 
+  def bucket_metadata_directory
+    File.join(storage_directory, '.minio.sys', 'buckets', bucket)
+  end
+
   def fixtures_directory
     File.join(File.dirname(__FILE__), 'fixtures')
   end
 
+  #Note that we have to remove both the content and also any metadata that may have been cached about it
   def remove_fixtures
     FileUtils.rm_rf(bucket_directory)
+    FileUtils.rm_rf(bucket_metadata_directory)
   end
 
   def install_fixtures
