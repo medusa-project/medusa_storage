@@ -50,6 +50,10 @@ class S3UnprefixedTest < Minitest::Test
     assert_equal ['child/grandchild-2/mel.txt'], @root.file_keys('child/grandchild-2')
   end
 
+  def test_file_keys_non_existent_directory
+    assert_equal [], @root.file_keys('no-child')
+  end
+
   def test_subdirectory_keys
     assert_equal ['child/'], @root.subdirectory_keys('')
     assert_equal ['child/grandchild-1/', 'child/grandchild-2/'],
@@ -75,17 +79,10 @@ class S3UnprefixedTest < Minitest::Test
     assert_equal "joe\n", response
   end
 
-  ###
-  # Tests for methods in the MedusaStorage::Root base class not overridden
-
-  def test_name
-    assert_equal 's3', @root.name
-  end
-
-  def test_mtime
-    #There is nothing here because I don't think that minio
-    # handles this in a way that is compatible with what we do.
-    # I just record it in case we think of something to do later.
+  def test_with_input_io
+    @root.with_input_io('child/fred.txt') do |io|
+      assert_equal "fred\n", io.read
+    end
   end
 
   def test_with_input_file
@@ -106,6 +103,7 @@ class S3UnprefixedTest < Minitest::Test
     assert @root.exist?('new.txt')
     assert_equal size, @root.size('new.txt')
     assert_equal md5, @root.md5_sum('new.txt')
+    assert_equal now.to_i.to_s, @root.mtime('new.txt')
     assert_equal string, @root.as_string('new.txt')
   end
 
@@ -115,6 +113,7 @@ class S3UnprefixedTest < Minitest::Test
     size = MedusaStorage::Root::S3::AMAZON_PART_SIZE * 16 #80MB for 5MB part size
     #Use the following to do a 10GB file
     #size = MedusaStorage::Root::S3::AMAZON_PART_SIZE * 2048
+    now = Time.now
     refute @root.exist?('new.txt')
     read_io, write_io = IO.pipe
     writer = Thread.new do
@@ -136,6 +135,7 @@ class S3UnprefixedTest < Minitest::Test
     reader.join
     assert @root.exist?('new.txt')
     assert_equal size, @root.size('new.txt')
+    assert_equal now.to_i.to_s, @root.mtime('new.txt')
     assert_equal writer[:md5], @root.md5_sum('new.txt')
   end
 
@@ -181,6 +181,72 @@ class S3UnprefixedTest < Minitest::Test
                      mtime: now)
     assert @root.exist?('joe.txt')
     assert_equal string, @root.as_string('joe.txt')
+  end
+
+  ###
+  # Tests for methods in the MedusaStorage::Root base class not overridden
+
+  def test_name
+    assert_equal 's3', @root.name
+  end
+
+  def test_mtime
+    #There is some mtime testing in the various other tests, but I don't
+    # know if there is a good way to test it directly with minio.
+  end
+
+  def test_delete_tree
+    keys = ['child/grandchild-1/dave.txt', 'child/grandchild-1/jim.txt']
+    keys.each {|key| assert @root.exist?(key)}
+    @root.delete_tree('child/grandchild-1/')
+    keys.each {|key| refute @root.exist?(key)}
+    assert @root.exist?('child/grandchild-2/mel.txt')
+  end
+
+  def test_delete_all_content
+    all_keys = @root.subtree_keys('')
+    assert_operator 0, :<, all_keys.count
+    @root.delete_all_content
+    all_keys = @root.subtree_keys('')
+    assert_equal 0, all_keys.count
+  end
+
+  def test_unprefixed_subtree_keys
+    assert_equal ["fred.txt", "grandchild-1/dave.txt", "grandchild-1/jim.txt", "grandchild-2/mel.txt"],
+                 @root.unprefixed_subtree_keys('child/').sort
+    assert_equal ['dave.txt', 'jim.txt'],
+                 @root.unprefixed_subtree_keys('child/grandchild-1/').sort
+  end
+
+  def test_as_string
+    assert_equal "pete\n", @root.as_string('pete.txt')
+    assert_equal "fred\n", @root.as_string('child/fred.txt')
+  end
+
+  def test_write_string_to
+    now = Time.now
+    @root.write_string_to('new.txt', 'new', mtime: now)
+    assert @root.exist?('new.txt')
+    assert_equal 'new', @root.as_string('new.txt')
+    assert_equal now.to_i.to_s, @root.mtime('new.txt')
+  end
+
+  def test_copy_content_to
+    @root.copy_content_to('joe-copy.txt', @root, 'joe.txt')
+    assert @root.exist?('joe-copy.txt')
+    assert_equal @root.mtime('joe.txt').to_s, @root.mtime('joe-copy.txt').to_s
+    assert_equal @root.as_string('joe.txt'), @root.as_string('joe-copy.txt')
+  end
+
+  def test_copy_tree_to
+    @root.copy_tree_to('child-copy/', @root, 'child/')
+    %w(fred.txt grandchild-1/dave.txt
+       grandchild-1/jim.txt grandchild-2/mel.txt).each do |key|
+      old_key = File.join('child', key)
+      new_key = File.join('child-copy', key)
+      assert @root.exist?(new_key)
+      assert_equal @root.as_string(old_key), @root.as_string(new_key)
+    end
   end
 
 end
