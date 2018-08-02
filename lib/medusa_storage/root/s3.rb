@@ -166,8 +166,9 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.
+  DEFAULT_EXPIRATION_TIME = 7 * 24 * 60 * 60 # 7 days
   def presigned_get_url(key, args = {})
-    presigner.presigned_url(:get_object, {bucket: bucket, key: key, expires_in: 7.days.to_i}.merge(args))
+    presigner.presigned_url(:get_object, {bucket: bucket, key: key, expires_in: DEFAULT_EXPIRATION_TIME}.merge(args))
   end
 
   def file_keys(directory_key)
@@ -204,7 +205,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def directory_key?(key)
-    key.end_with?('/')
+    key.end_with?('/') or key == ''
   end
 
   def ensure_directory_key(key)
