@@ -15,6 +15,9 @@ class FilesystemTest < Minitest::Test
     FileUtils.rm_rf(@test_dir)
   end
 
+  ###
+  # Tests for methods in the MedusaStorage::Root::Filesystem class, including overrides
+
   def test_root_type
     assert_equal :filesystem, @root.root_type
   end
@@ -196,6 +199,51 @@ class FilesystemTest < Minitest::Test
                      mtime: now)
     assert @root.exist?('joe.txt')
     assert_equal string, File.read(@root.path_to('joe.txt'))
+  end
+
+  ###
+  # Tests for methods in the MedusaStorage::Root base class not overriden
+
+  def test_hex_md5_sum
+    assert_equal 'c84f70d1baf964207d7519bf21602c24', @root.hex_md5_sum('joe.txt')
+  end
+
+  def test_unprefixed_subtree_keys
+    assert_equal ["fred.txt", "grandchild-1/dave.txt", "grandchild-1/jim.txt", "grandchild-2/mel.txt"],
+                 @root.unprefixed_subtree_keys('child').sort
+    assert_equal ['dave.txt', 'jim.txt'],
+                 @root.unprefixed_subtree_keys('child/grandchild-1').sort
+  end
+
+  def test_as_string
+    assert_equal "pete\n", @root.as_string('pete.txt')
+    assert_equal "fred\n", @root.as_string('child/fred.txt')
+  end
+
+  def test_write_string_to
+    now = Time.now
+    @root.write_string_to('new.txt', 'new', mtime: now)
+    assert @root.exist?('new.txt')
+    assert_equal 'new', @root.as_string('new.txt')
+    assert_equal now, @root.mtime('new.txt')
+  end
+
+  def test_copy_content_to
+    @root.copy_content_to('joe-copy.txt', @root, 'joe.txt')
+    assert @root.exist?('joe-copy.txt')
+    assert_equal @root.mtime('joe.txt').to_s, @root.mtime('joe-copy.txt').to_s
+    assert_equal @root.as_string('joe.txt'), @root.as_string('joe-copy.txt')
+  end
+
+  def test_copy_tree_to
+    @root.copy_tree_to('child-copy', @root, 'child')
+    %w(fred.txt grandchild-1/dave.txt
+       grandchild-1/jim.txt grandchild-2/mel.txt).each do |key|
+      old_key = File.join('child', key)
+      new_key = File.join('child-copy', key)
+      assert @root.exist?(new_key)
+      assert_equal @root.as_string(old_key), @root.as_string(new_key)
+    end
   end
 
 end

@@ -105,6 +105,19 @@ class MedusaStorage::Root
     raise "subclass responsibility"
   end
 
+  #The content of the key as a string - clearly care should be used if it could be large
+  def as_string(key)
+    with_input_io(key) do |io|
+      io.read
+    end
+  end
+
+  #Write the given string to the given key
+  def write_string_to(key, string, mtime: nil)
+    mtime ||= Time.now
+    copy_io_to(key, StringIO.new(string), Digest::MD5.base64digest(string), string.length, mtime: mtime)
+  end
+
   #copy the given io to the key
   # Should raise MedusaStorage::Error::MD5 if there is an md5 problem.
   # If the MD5 is unknown then pass nil. This will result in checks that use
@@ -138,19 +151,6 @@ class MedusaStorage::Root
   def copy_tree_to(key, source_root, source_key)
     source_root.unprefixed_subtree_keys(source_key).each do |unprefixed_key|
       copy_content_to(File.join(key, unprefixed_key), source_root, File.join(source_key, unprefixed_key))
-    end
-  end
-
-  #Write the given string to the given key
-  def write_string_to(key, string, mtime: nil)
-    mtime ||= Time.now
-    copy_io_to(key, StringIO.new(string), Digest::MD5.base64digest(string), string.length, mtime: mtime)
-  end
-
-  #The content of the key as a string - clearly care should be used if it could be large
-  def as_string(key)
-    with_input_io(key) do |io|
-      io.read
     end
   end
 
