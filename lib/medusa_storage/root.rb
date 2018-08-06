@@ -1,8 +1,9 @@
 #This is an abstract class to represent a location from which content can be addressed by 'keys' that
 # speak of a directory-style relative location from wherever the 'root' is (though in fact it might
 # be more generalizable than that). Examples would be relative paths
-# from some directory path in a filesystem, or amazon keys in a given bucket and possibly with a prefix. Anything
-# that can fit into that paradigm could work, though we specifically have in mind filesystems and AWS S3.
+# from some directory path in a filesystem, or amazon keys in a given bucket and possibly with a prefix (note that
+# the trailing '/' must be specified).
+# Anything that can fit into that paradigm could work, though we specifically have in mind filesystems and AWS S3.
 #
 # It is undefined what happens if a key either starts with '/' or contains consecutive '/' characters.
 #
