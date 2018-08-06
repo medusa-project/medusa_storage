@@ -66,9 +66,41 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     :s3
   end
 
+  def add_prefix_single(key)
+    prefix + key
+  end
+
+  def remove_prefix_single(key)
+    key.sub(/^#{prefix}/, '')
+  end
+
+  def add_prefix(key_or_keys)
+    if prefix == ''
+      key_or_keys
+    else
+      if key_or_keys.is_a?(String)
+        add_prefix_single(key_or_keys)
+      else
+        key_or_keys.collect {|key| add_prefix_single(key  )}
+      end
+    end
+  end
+
+  def remove_prefix(key_or_keys)
+    if prefix == ''
+      key_or_keys
+    else
+      if key_or_keys.is_a?(String)
+        remove_prefix_single(key_or_keys)
+      else
+        key_or_keys.collect {|key| remove_prefix_single(key)}
+      end
+    end
+  end
+
   #Do a head_object request on the key. This is to support other methods, but may be useful on its own.
   def info(key)
-    s3_client.head_object(bucket: bucket, key: key)
+    s3_client.head_object(bucket: bucket, key: add_prefix(key))
   end
 
   def metadata(key)
@@ -96,7 +128,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def with_input_io(key)
-    object = s3_client.get_object(bucket: bucket, key: key)
+    object = s3_client.get_object(bucket: bucket, key: add_prefix(key))
     body = object.body
     yield body
   ensure
@@ -128,7 +160,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   def copy_io_to_small(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new
-    args = {bucket: bucket, key: key, body: input_io, metadata: metadata_headers}
+    args = {bucket: bucket, key: add_prefix(key), body: input_io, metadata: metadata_headers}
     args.merge!(content_md5: md5_sum) if md5_sum
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
     metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
@@ -144,7 +176,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     metadata_headers = Hash.new
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
     metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
-    object = s3_object(key)
+    object = s3_object(add_prefix(key))
     object_already_exists = object.exists?
     digester = MedusaStorage::EtagCalculator.new(AMAZON_PART_SIZE)
     buffer = ''
@@ -169,7 +201,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   #Get a 'GET' url for this object that is presigned, so can be used to grant access temporarily without the auth info.
   DEFAULT_EXPIRATION_TIME = 7 * 24 * 60 * 60 # 7 days
   def presigned_get_url(key, args = {})
-    presigner.presigned_url(:get_object, {bucket: bucket, key: key, expires_in: DEFAULT_EXPIRATION_TIME}.merge(args))
+    presigner.presigned_url(:get_object, {bucket: bucket, key: add_prefix(key), expires_in: DEFAULT_EXPIRATION_TIME}.merge(args))
   end
 
   def file_keys(directory_key)
@@ -184,12 +216,12 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     keys = Array.new
     continuation_token = nil
     loop do
-      results = s3_client.list_objects_v2(bucket: bucket, prefix: ensure_directory_key(directory_key), continuation_token: continuation_token, delimiter: '/')
+      results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), continuation_token: continuation_token, delimiter: '/')
       keys += results.common_prefixes.collect(&:prefix)
       continuation_token = results.next_continuation_token
       break if continuation_token.nil?
     end
-    return keys
+    return remove_prefix(keys)
   end
 
   #internal method to support getting 'file' type objects
@@ -197,12 +229,12 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     keys = Array.new
     continuation_token = nil
     loop do
-      results = s3_client.list_objects_v2(bucket: bucket, prefix: ensure_directory_key(directory_key), continuation_token: continuation_token, delimiter: delimiter)
+      results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), continuation_token: continuation_token, delimiter: delimiter)
       keys += results.contents.collect(&:key).reject {|key| directory_key?(key)}
       continuation_token = results.next_continuation_token
       break if continuation_token.nil?
     end
-    return keys
+    return remove_prefix(keys)
   end
 
   def directory_key?(key)
@@ -214,7 +246,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def delete_content(key)
-    s3_client.delete_object(bucket: bucket, key: key)
+    s3_client.delete_object(bucket: bucket, key: add_prefix(key))
   end
 
 end
