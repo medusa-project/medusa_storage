@@ -55,7 +55,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def s3_object(key)
-    Aws::S3::Resource.new(client: s3_client).bucket(bucket).object(key)
+    Aws::S3::Resource.new(client: s3_client).bucket(bucket).object(add_prefix(key))
   end
 
   def presigner
@@ -176,7 +176,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     metadata_headers = Hash.new
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
     metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
-    object = s3_object(add_prefix(key))
+    object = s3_object(key)
     object_already_exists = object.exists?
     digester = MedusaStorage::EtagCalculator.new(AMAZON_PART_SIZE)
     buffer = ''
