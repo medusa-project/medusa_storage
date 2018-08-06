@@ -93,6 +93,15 @@ class S3PrefixedTest < Minitest::Test
     assert_not_exist?('child/fred.txt')
   end
 
+  def test_move_content
+    assert_exist?('child/fred.txt')
+    assert_not_exist?('fred-move.txt')
+    @root.move_content('child/fred.txt', 'fred-move.txt')
+    assert_not_exist?('child/fred.txt')
+    assert_exist?('fred-move.txt')
+    assert_equal "fred\n", @root.as_string('fred-move.txt')
+  end
+
   def test_presigned_get_url
     url = @root.presigned_get_url('joe.txt')
     response = Net::HTTP.get(URI(url))
@@ -181,12 +190,18 @@ class S3PrefixedTest < Minitest::Test
     # know if there is a good way to test it directly with minio.
   end
 
-  def test_delete_tree
+  def test_delete_tree_on_directory_key
     keys = ['child/grandchild-1/dave.txt', 'child/grandchild-1/jim.txt']
     keys.each {|key| assert_exist?(key)}
     @root.delete_tree('child/grandchild-1/')
     keys.each {|key| assert_not_exist?(key)}
     assert_exist?('child/grandchild-2/mel.txt')
+  end
+
+  def test_delete_tree_on_content_key
+    assert_exist?('joe.txt')
+    @root.delete_tree('joe.txt')
+    assert_not_exist?('joe.txt')
   end
 
   def test_delete_all_content

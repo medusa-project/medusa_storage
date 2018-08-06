@@ -134,6 +134,10 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     path_to(key).unlink
   end
 
+  def move_content(source_key, target_key)
+    FileUtils.mv(path_to(source_key), path_to(target_key), force: true)
+  end
+
   #We override this to use the file system facilities to delete, which also ensures that directories will
   # get deleted, which the superclass method can't do.
   def delete_tree(key)

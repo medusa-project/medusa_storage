@@ -103,12 +103,18 @@ class FilesystemTest < Minitest::Test
     refute @root.exist?('child/fred.txt')
   end
 
-  def test_delete_tree
+  def test_delete_tree_on_directory_key
     keys = ['child/grandchild-1/dave.txt', 'child/grandchild-1/jim.txt']
     keys.each {|key| assert @root.exist?(key)}
     @root.delete_tree('child/grandchild-1')
     keys.each {|key| refute @root.exist?(key)}
     assert @root.exist?('child/grandchild-2/mel.txt')
+  end
+
+  def test_delete_tree_on_content_key
+    assert @root.exist?('joe.txt')
+    @root.delete_tree('joe.txt')
+    refute @root.exist?('joe.txt')
   end
 
   def test_delete_all_content
@@ -117,6 +123,15 @@ class FilesystemTest < Minitest::Test
     @root.delete_all_content
     all_keys = @root.subtree_keys('')
     assert_equal 0, all_keys.count
+  end
+
+  def test_move_content
+    assert @root.exist?('child/fred.txt')
+    refute @root.exist?('fred-move.txt')
+    @root.move_content('child/fred.txt', 'fred-move.txt')
+    refute @root.exist?('child/fred.txt')
+    assert @root.exist?('fred-move.txt')
+    assert_equal "fred\n", @root.as_string('fred-move.txt')
   end
 
   def test_with_input_io

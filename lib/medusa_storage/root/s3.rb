@@ -249,4 +249,8 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     s3_client.delete_object(bucket: bucket, key: add_prefix(key))
   end
 
+  def move_content(source_key, target_key)
+    s3_object(source_key).move_to(bucket: bucket, key: add_prefix(target_key))
+  end
+
 end

@@ -160,6 +160,13 @@ class MedusaStorage::Root
     raise "subclass responsibility"
   end
 
+  #Move content to a different location in the root
+  # Note that this default is not atomic and individual implementations can probably do better
+  def move_content(source_key, target_key)
+    copy_content_to(target_key, self, source_key)
+    delete_content(source_key)
+  end
+
   #If a file key then delete its content; if a directory key then delete all content under it
   # Subclasses may want to override for efficiency, or to provide better behavior, e.g. a filesystem
   # root will probably want to delete the directories as well as the content
