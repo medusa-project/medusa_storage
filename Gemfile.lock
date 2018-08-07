@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    medusa_storage (0.1.8)
+    medusa_storage (0.1.9)
       aws-sdk-s3
       hex_string
       parallel (~> 1.12)
