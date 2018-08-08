@@ -78,7 +78,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
       if key_or_keys.is_a?(String)
         add_prefix_single(key_or_keys)
       else
-        key_or_keys.collect {|key| add_prefix_single(key  )}
+        key_or_keys.collect {|key| add_prefix_single(key)}
       end
     end
   end
@@ -110,7 +110,11 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def mtime(key)
-    metadata(key)[AMAZON_HEADERS[:mtime]]
+    if mtime_string = metadata(key)[AMAZON_HEADERS[:mtime]]
+      Time.at(mtime_string.to_i)
+    else
+      nil
+    end
   end
 
   def exist?(key)

@@ -132,7 +132,7 @@ class S3PrefixedTest < Minitest::Test
     assert_exist?('new.txt')
     assert_equal size, @root.size('new.txt')
     assert_equal md5, @root.md5_sum('new.txt')
-    assert_equal now.to_i.to_s, @root.mtime('new.txt')
+    assert_equal now.to_i, @root.mtime('new.txt').to_i
     assert_equal string, @root.as_string('new.txt')
   end
   
@@ -231,7 +231,7 @@ class S3PrefixedTest < Minitest::Test
     @root.write_string_to('new.txt', 'new', mtime: now)
     assert_exist?('new.txt')
     assert_equal 'new', @root.as_string('new.txt')
-    assert_equal now.to_i.to_s, @root.mtime('new.txt')
+    assert_equal now.to_i, @root.mtime('new.txt').to_i
   end
 
   def test_copy_content_to

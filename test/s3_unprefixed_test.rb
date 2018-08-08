@@ -112,7 +112,7 @@ class S3UnprefixedTest < Minitest::Test
     assert @root.exist?('new.txt')
     assert_equal size, @root.size('new.txt')
     assert_equal md5, @root.md5_sum('new.txt')
-    assert_equal now.to_i.to_s, @root.mtime('new.txt')
+    assert_equal now.to_i, @root.mtime('new.txt').to_i
     assert_equal string, @root.as_string('new.txt')
   end
 
@@ -144,7 +144,7 @@ class S3UnprefixedTest < Minitest::Test
     reader.join
     assert @root.exist?('new.txt')
     assert_equal size, @root.size('new.txt')
-    assert_equal now.to_i.to_s, @root.mtime('new.txt')
+    assert_equal now.to_i, @root.mtime('new.txt').to_i
     assert_equal writer[:md5], @root.md5_sum('new.txt')
   end
 
@@ -200,8 +200,9 @@ class S3UnprefixedTest < Minitest::Test
   end
 
   def test_mtime
-    #There is some mtime testing in the various other tests, but I don't
-    # know if there is a good way to test it directly with minio.
+    time = Time.at(Time.now.to_i - 36000)
+    @root.write_string_to('mtime-test.txt', 'content', mtime: time)
+    assert_equal time, @root.mtime('mtime-test.txt')
   end
 
   def test_delete_tree_on_directory_key
@@ -243,7 +244,7 @@ class S3UnprefixedTest < Minitest::Test
     @root.write_string_to('new.txt', 'new', mtime: now)
     assert @root.exist?('new.txt')
     assert_equal 'new', @root.as_string('new.txt')
-    assert_equal now.to_i.to_s, @root.mtime('new.txt')
+    assert_equal now.to_i, @root.mtime('new.txt').to_i
   end
 
   def test_copy_content_to
