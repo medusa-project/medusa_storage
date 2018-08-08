@@ -111,7 +111,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   def mtime(key)
     if mtime_string = metadata(key)[AMAZON_HEADERS[:mtime]]
-      Time.at(mtime_string.to_i)
+      Time.at(mtime_string.to_f)
     else
       nil
     end
@@ -164,7 +164,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     args = {bucket: bucket, key: add_prefix(key), body: input_io, metadata: metadata_headers}
     args.merge!(content_md5: md5_sum) if md5_sum
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
-    metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
+    metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_f.to_s if metadata[:mtime]
     s3_client.put_object(args)
   rescue Aws::S3::Errors::InvalidDigest
     raise MedusaStorage::Error::MD5
@@ -176,7 +176,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   def copy_io_to_large(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
-    metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_i.to_s if metadata[:mtime]
+    metadata_headers[AMAZON_HEADERS[:mtime]] = metadata[:mtime].to_f.to_s if metadata[:mtime]
     object = s3_object(key)
     object_already_exists = object.exists?
     digester = MedusaStorage::EtagCalculator.new(AMAZON_PART_SIZE)

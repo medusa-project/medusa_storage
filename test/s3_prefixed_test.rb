@@ -2,9 +2,11 @@ require_relative 'test_helper'
 require_relative 'minio_helper'
 require 'net/http'
 require 'digest'
+require_relative 'time_helper'
 
 class S3PrefixedTest < Minitest::Test
-
+  include TimeHelper
+  
   def setup
     @prefix = 'my/prefix/'
     MinioHelper.install_prefixed_fixtures(@prefix)
@@ -132,7 +134,7 @@ class S3PrefixedTest < Minitest::Test
     assert_exist?('new.txt')
     assert_equal size, @root.size('new.txt')
     assert_equal md5, @root.md5_sum('new.txt')
-    assert_equal now.to_i, @root.mtime('new.txt').to_i
+    assert time_equal(now, @root.mtime('new.txt'))
     assert_equal string, @root.as_string('new.txt')
   end
   
@@ -185,11 +187,6 @@ class S3PrefixedTest < Minitest::Test
   #
   #
 
-  def test_mtime
-    #There is some mtime testing in the various other tests, but I don't
-    # know if there is a good way to test it directly with minio.
-  end
-
   def test_delete_tree_on_directory_key
     keys = ['child/grandchild-1/dave.txt', 'child/grandchild-1/jim.txt']
     keys.each {|key| assert_exist?(key)}
@@ -231,13 +228,13 @@ class S3PrefixedTest < Minitest::Test
     @root.write_string_to('new.txt', 'new', mtime: now)
     assert_exist?('new.txt')
     assert_equal 'new', @root.as_string('new.txt')
-    assert_equal now.to_i, @root.mtime('new.txt').to_i
+    assert time_equal(now, @root.mtime('new.txt'))
   end
 
   def test_copy_content_to
     @root.copy_content_to('joe-copy.txt', @root, 'joe.txt')
     assert_exist?('joe-copy.txt')
-    assert_equal @root.mtime('joe.txt').to_s, @root.mtime('joe-copy.txt').to_s
+    assert time_equal(@root.mtime('joe.txt'), @root.mtime('joe-copy.txt'))
     assert_equal @root.as_string('joe.txt'), @root.as_string('joe-copy.txt')
   end
 

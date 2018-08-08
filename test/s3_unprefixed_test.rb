@@ -2,8 +2,11 @@ require_relative 'test_helper'
 require_relative 'minio_helper'
 require 'net/http'
 require 'digest'
+require_relative 'time_helper'
 
 class S3UnprefixedTest < Minitest::Test
+
+  include TimeHelper
 
   def setup
     MinioHelper.install_fixtures
@@ -112,7 +115,7 @@ class S3UnprefixedTest < Minitest::Test
     assert @root.exist?('new.txt')
     assert_equal size, @root.size('new.txt')
     assert_equal md5, @root.md5_sum('new.txt')
-    assert_equal now.to_i, @root.mtime('new.txt').to_i
+    assert time_equal(now, @root.mtime('new.txt'))
     assert_equal string, @root.as_string('new.txt')
   end
 
@@ -137,14 +140,14 @@ class S3UnprefixedTest < Minitest::Test
       write_io.close
     end
     reader = Thread.new do
-      @root.copy_io_to_large('new.txt', read_io, nil, mtime: Time.now)
+      @root.copy_io_to_large('new.txt', read_io, nil, mtime: now)
       read_io.close
     end
     writer.join
     reader.join
     assert @root.exist?('new.txt')
     assert_equal size, @root.size('new.txt')
-    assert_equal now.to_i, @root.mtime('new.txt').to_i
+    assert time_equal(now, @root.mtime('new.txt'))
     assert_equal writer[:md5], @root.md5_sum('new.txt')
   end
 
@@ -200,9 +203,9 @@ class S3UnprefixedTest < Minitest::Test
   end
 
   def test_mtime
-    time = Time.at(Time.now.to_i - 36000)
+    time = Time.at(Time.now.to_f - 36000)
     @root.write_string_to('mtime-test.txt', 'content', mtime: time)
-    assert_equal time, @root.mtime('mtime-test.txt')
+    assert time_equal(time, @root.mtime('mtime-test.txt'))
   end
 
   def test_delete_tree_on_directory_key
@@ -244,13 +247,13 @@ class S3UnprefixedTest < Minitest::Test
     @root.write_string_to('new.txt', 'new', mtime: now)
     assert @root.exist?('new.txt')
     assert_equal 'new', @root.as_string('new.txt')
-    assert_equal now.to_i, @root.mtime('new.txt').to_i
+    assert time_equal(now, @root.mtime('new.txt'))
   end
 
   def test_copy_content_to
     @root.copy_content_to('joe-copy.txt', @root, 'joe.txt')
     assert @root.exist?('joe-copy.txt')
-    assert_equal @root.mtime('joe.txt').to_s, @root.mtime('joe-copy.txt').to_s
+    assert time_equal(@root.mtime('joe.txt'), @root.mtime('joe-copy.txt'))
     assert_equal @root.as_string('joe.txt'), @root.as_string('joe-copy.txt')
   end
 
