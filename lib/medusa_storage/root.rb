@@ -12,6 +12,8 @@
 # the filesystem can produce an actual path to a file.
 require 'base64'
 require 'hex_string'
+require 'parallel'
+
 class MedusaStorage::Root
 
   attr_accessor :name
