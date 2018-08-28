@@ -192,6 +192,7 @@ class S3UnprefixedTest < Minitest::Test
     @root.copy_io_to('joe.txt', StringIO.new(string, 'rb'), md5, size,
                      mtime: now)
     assert @root.exist?('joe.txt')
+    assert time_equal(now, @root.mtime('joe.txt'))
     assert_equal string, @root.as_string('joe.txt')
   end
 
@@ -255,6 +256,25 @@ class S3UnprefixedTest < Minitest::Test
     assert @root.exist?('joe-copy.txt')
     assert time_equal(@root.mtime('joe.txt'), @root.mtime('joe-copy.txt'))
     assert_equal @root.as_string('joe.txt'), @root.as_string('joe-copy.txt')
+  end
+
+  def test_copy_content_to_force_super_call
+    @root.copy_targets.delete(@root.name)
+    refute @root.can_s3_copy_to?(@root.name)
+    @root.copy_content_to('joe-copy.txt', @root, 'joe.txt')
+    assert @root.exist?('joe-copy.txt')
+    assert time_equal(@root.mtime('joe.txt'), @root.mtime('joe-copy.txt'))
+    assert_equal @root.as_string('joe.txt'), @root.as_string('joe-copy.txt')
+  end
+
+  def test_copy_content_to_with_metadata
+    now = Time.now
+    @root.write_string_to('new.txt', 'new', mtime: now)
+    @root.copy_content_to('new-copy.txt', @root, 'new.txt', 'some_key' => 'some_value')
+    assert @root.exist?('new-copy.txt')
+    assert_equal 'some_value', @root.metadata('new-copy.txt')['some_key']
+    assert_equal @root.md5_sum('new.txt'), @root.md5_sum('new-copy.txt')
+    assert time_equal(now, @root.mtime('new-copy.txt'))
   end
 
   def test_copy_tree_to

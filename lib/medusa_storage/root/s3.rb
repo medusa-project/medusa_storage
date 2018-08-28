@@ -10,11 +10,12 @@ require_relative '../invalid_key_error'
 require_relative '../error/md5'
 require_relative '../etag_calculator'
 require 'parallel'
+require 'set'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   attr_accessor :endpoint, :bucket, :region, :prefix, :aws_access_key_id, :aws_secret_access_key,
-                :force_path_style, :client_args
+                :force_path_style, :client_args, :copy_targets
 
   #md5_sum and mtime are rclone compatible names
   # in rclone the md5_sum is the base64 encoded 128 bit md5 sum
@@ -34,6 +35,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     self.aws_secret_access_key = args[:aws_secret_access_key]
     self.force_path_style = args[:force_path_style] || false
     initialize_client_args
+    initialize_copy_targets(args[:copy_targets])
   end
 
   def s3_client
@@ -45,6 +47,14 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     args.merge!(endpoint: endpoint) if endpoint
     args.merge!(region: region) if region
     self.client_args = args
+  end
+
+  def initialize_copy_targets(copy_target_array)
+    self.copy_targets = Set.new
+    self.copy_targets << self.name
+    if copy_target_array
+      self.copy_targets + copy_target_array
+    end
   end
 
   def s3_credentials
@@ -163,7 +173,23 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   #   copies. The object#copy_from or client#copy_to methods are also available, but may be more restricted for size
   #   (don't know about object#copy_from).
   def copy_content_to(key, source_root, source_key, metadata = {})
-    super
+    if source_root.root_type == :s3 and source_root.can_s3_copy_to?(self.name)
+      do_multipart = source_root.size(source_key) > AMAZON_CUTOFF_SIZE
+      source_object = source_root.s3_object(source_key)
+      target_object = s3_object(key)
+      source_mtime = source_root.mtime(source_key)
+      if source_mtime and !(metadata[:mtime])
+        metadata[:mtime] = source_mtime.to_f.to_s
+      end
+      unless metadata[AMAZON_HEADERS[:md5_sum]]
+        metadata[AMAZON_HEADERS[:md5_sum]] = source_root.md5_sum(source_key)
+      end
+      # metadata? I think the commented out will just copy, but haven't checked.
+      source_object.copy_to(target_object, multipart_copy: do_multipart, metadata: metadata, metadata_directive: 'REPLACE')
+      #source_object.copy_to(target_object, multipart_copy: do_multipart)
+    else
+      super
+    end
   end
 
   def copy_io_to(key, input_io, md5_sum, size, metadata = {})
@@ -267,6 +293,10 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   def move_content(source_key, target_key)
     s3_object(source_key).move_to(bucket: bucket, key: add_prefix(target_key))
+  end
+
+  def can_s3_copy_to?(target_name)
+    copy_targets.include?(target_name)
   end
 
 end
