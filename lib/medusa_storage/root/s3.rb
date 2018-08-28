@@ -51,9 +51,10 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   def initialize_copy_targets(copy_target_array)
     self.copy_targets = Set.new
-    self.copy_targets << self.name
-    if copy_target_array
-      self.copy_targets + copy_target_array
+    copy_target_array ||= []
+    copy_target_array << self.name
+    copy_target_array.each do |target|
+      self.copy_targets << target
     end
   end
 
