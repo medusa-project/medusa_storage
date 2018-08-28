@@ -154,14 +154,14 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   #TODO - enable this to do direct S3 to S3 copies in some cases
   # Specifically, we need to do the following things:
   # - check for copy compatibility: this should always be possible from self to self
-  #   For others, add a 'copy_targets:' array to the _source_ root, with values the
-  #   names of possible _target_ roots.
+  #   For others, add a 'copy_targets:' array to the _source_ root config, with values the
+  #   names of possible _target_ roots. Of course, initialize that.
   # - if not compatible, fall back to super
   # - if compatible, check to see if we need to do multipart or not
   # - test to see how metadata works
   # - the AWS object#copy_to method (on the source object) allows arbitrary size (with multipart set if necessary)
   #   copies. The object#copy_from or client#copy_to methods are also available, but may be more restricted for size
-  #   (don't know about object#copy_from). 
+  #   (don't know about object#copy_from).
   def copy_content_to(key, source_root, source_key, metadata = {})
     super
   end
