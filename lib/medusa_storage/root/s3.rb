@@ -152,9 +152,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     sub_dir = File.join(tmp_dir, SecureRandom.hex(10))
     FileUtils.mkdir_p(sub_dir)
     file_name = File.join(sub_dir, File.basename(key))
-    with_input_io(key) do |io|
-      IO.copy_stream(io, file_name)
-    end
+    s3_object(key).download_file(file_name)
     yield file_name
   ensure
     FileUtils.rm_rf(sub_dir) if sub_dir and Dir.exist?(sub_dir)
