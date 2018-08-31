@@ -145,6 +145,10 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   # reading end, and do multiple ranged requests into the reading end.
   # It'd be best if AWS itself provides a solution here, but of that I'm unsure, and unwilling
   # to bet on it.
+  # As noted on another branch, there have been issues with IO::Pipe (the AWS API doesn't like
+  # its type of IO for some reason). If that doesn't work out, a dirty way of doing this
+  # would be to return in memory for small files, and to download the file and return an IO on
+  # it for large ones.
   def with_input_io(key)
     object = s3_client.get_object(bucket: bucket, key: add_prefix(key))
     body = object.body
