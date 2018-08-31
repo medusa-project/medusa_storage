@@ -139,6 +139,12 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     info(key).content_length
   end
 
+  #TODO - like with_input_file, this may present a problem if the size is too large
+  # I'm presently not sure how to handle that. We could actually download the file
+  # and return an IO on that, but that seems bad. We could make a IO::Pipe, return the
+  # reading end, and do multiple ranged requests into the reading end.
+  # It'd be best if AWS itself provides a solution here, but of that I'm unsure, and unwilling
+  # to bet on it.
   def with_input_io(key)
     object = s3_client.get_object(bucket: bucket, key: add_prefix(key))
     body = object.body
