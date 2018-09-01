@@ -100,7 +100,9 @@ class MedusaStorage::Root
   #
   # The tmp_dir parameter is provided so that the client has control over where in the
   # directory tree if needed (e.g. on EC2 systems the main storage of the server may not be large
-  # enough, so EFS may be indicated).
+  # enough, so EFS may be indicated). This is found by MedusaStorage::Config.tmpdir. It may be set in
+  # code by MedusaStorage::Config.tmpdir=. It may also be set with an environment variable or by default
+  # uses Dir.tmpdir. See MedusaStorage::Config for details.
   #
   # This is provided as an alternative to with_input_io when an operation is to be performed that cannot work
   # directly on a stream, e.g. processing with FITS.

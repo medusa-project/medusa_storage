@@ -11,6 +11,7 @@ require_relative '../error/md5'
 require_relative '../etag_calculator'
 require 'parallel'
 require 'set'
+require_relative '../config'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
@@ -139,26 +140,33 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     info(key).content_length
   end
 
-  #TODO - like with_input_file, this may present a problem if the size is too large
-  # I'm presently not sure how to handle that. We could actually download the file
-  # and return an IO on that, but that seems bad. We could make a IO::Pipe, return the
-  # reading end, and do multiple ranged requests into the reading end.
-  # It'd be best if AWS itself provides a solution here, but of that I'm unsure, and unwilling
-  # to bet on it.
-  # As noted on another branch, there have been issues with IO::Pipe (the AWS API doesn't like
-  # its type of IO for some reason). If that doesn't work out, a dirty way of doing this
-  # would be to return in memory for small files, and to download the file and return an IO on
-  # it for large ones.
+  #TODO - if we can figure out a reasonable way to do it, make this work
+  # better for large io streams. I have a branch out on that, but there are
+  # some difficulties to overcome.
+  #
+  # By default AWS gets into a StringIO all at once, so we have to avoid that
+  # if the input is _too_ big. Currently we implement a rather kludgey workaround.
+  INPUT_IO_THRESHOLD = 250 * 1024 * 1024 #250 MB
   def with_input_io(key)
-    object = s3_client.get_object(bucket: bucket, key: add_prefix(key))
-    body = object.body
-    yield body
-  ensure
-    body.close if body
+    if size(key) <= INPUT_IO_THRESHOLD
+      begin
+        object = s3_client.get_object(bucket: bucket, key: add_prefix(key))
+        body = object.body
+        yield body
+      ensure
+        body.close if body
+      end
+    else
+      with_input_file(key) do |file_name|
+        File.open(file_name, 'rb') do |io|
+          yield io
+        end
+      end
+    end
   end
 
   def with_input_file(key, tmp_dir: nil)
-    tmp_dir ||= Dir.tmpdir
+    tmp_dir ||= MedusaStorage::Config.tmpdir
     sub_dir = File.join(tmp_dir, SecureRandom.hex(10))
     FileUtils.mkdir_p(sub_dir)
     file_name = File.join(sub_dir, File.basename(key))
