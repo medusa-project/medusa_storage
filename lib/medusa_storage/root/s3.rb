@@ -234,7 +234,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   AMAZON_PART_SIZE = 5 * 1024 * 1024
-  UPLOAD_BUFFER_SIZE = 64 * 1024
+  UPLOAD_BUFFER_SIZE = 5 * 1024 * 1024
 
   def copy_io_to_large(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new

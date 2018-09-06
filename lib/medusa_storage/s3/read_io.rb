@@ -2,6 +2,7 @@ require 'io/like'
 require_relative '../s3'
 
 class MedusaStorage::S3::ReadIO
+
   include IO::Like
 
   attr_accessor :root, :key, :position
@@ -10,13 +11,14 @@ class MedusaStorage::S3::ReadIO
     self.root = root
     self.key = key
     self.position = 0
+    self.fill_size = 10 * 1024 * 1024
   end
 
   def size
     @size ||= root.size(key)
   end
 
-  MAX_READ_LENGTH = 5 * 1024 * 1024
+  MAX_READ_LENGTH = 10 * 1024 * 1024
 
   def unbuffered_read(length)
     raise EOFError if position >= size
