@@ -9,3 +9,5 @@
 .env
 .envrc
 /test/coverage/
+test-config.yml
+test-setup.rb
