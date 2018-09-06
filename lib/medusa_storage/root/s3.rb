@@ -12,6 +12,7 @@ require_relative '../etag_calculator'
 require 'parallel'
 require 'set'
 require_relative '../config'
+require_relative '../s3/read_io'
 
 class MedusaStorage::Root::S3 < MedusaStorage::Root
 
@@ -145,7 +146,8 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   # some difficulties to overcome.
   #
   # By default AWS gets into a StringIO all at once, so we have to avoid that
-  # if the input is _too_ big. Currently we implement a rather kludgey workaround.
+  # if the input is _too_ big. If it exceeds the threshold then
+  # give a custom IO object that behaves well enough.
   INPUT_IO_THRESHOLD = 250 * 1024 * 1024 #250 MB
   def with_input_io(key)
     if size(key) <= INPUT_IO_THRESHOLD
@@ -157,12 +159,15 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
         body.close if body
       end
     else
-      with_input_file(key) do |file_name|
-        File.open(file_name, 'rb') do |io|
-          yield io
-        end
-      end
+      yield MedusaStorage::S3::ReadIO.new(self, key)
     end
+  end
+
+  #From the object 'key' in bucket, get length bytes starting at position.
+  # Return as an IO.
+  def get_bytes(key, position, length)
+    content_range = "bytes=#{position}-#{position + length - 1}"
+    s3_object(key).get(range: content_range).body
   end
 
   def with_input_file(key, tmp_dir: nil)
