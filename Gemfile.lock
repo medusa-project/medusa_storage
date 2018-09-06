@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    medusa_storage (0.2.5)
+    medusa_storage (0.3.0)
       aws-sdk-s3
       hex_string
       io-like
@@ -11,20 +11,20 @@ GEM
   remote: https://rubygems.org/
   specs:
     aws-eventstream (1.0.1)
-    aws-partitions (1.94.0)
-    aws-sdk-core (3.22.0)
+    aws-partitions (1.102.0)
+    aws-sdk-core (3.27.0)
       aws-eventstream (~> 1.0)
       aws-partitions (~> 1.0)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
-    aws-sdk-kms (1.6.0)
-      aws-sdk-core (~> 3)
+    aws-sdk-kms (1.9.0)
+      aws-sdk-core (~> 3, >= 3.26.0)
       aws-sigv4 (~> 1.0)
-    aws-sdk-s3 (1.15.0)
-      aws-sdk-core (~> 3, >= 3.21.2)
+    aws-sdk-s3 (1.19.0)
+      aws-sdk-core (~> 3, >= 3.26.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.0)
-    aws-sigv4 (1.0.2)
+    aws-sigv4 (1.0.3)
     docile (1.1.5)
     hex_string (1.0.1)
     io-like (0.3.0)
