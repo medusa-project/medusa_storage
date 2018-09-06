@@ -37,4 +37,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'aws-sdk-s3'
   spec.add_runtime_dependency 'parallel', '~> 1.12'
   spec.add_runtime_dependency 'hex_string'
+  spec.add_runtime_dependency 'io-like'
 end
