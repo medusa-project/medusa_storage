@@ -56,6 +56,21 @@ a file, to be yielded to a block (the former is useful for generating fixity che
 the latter for FITS, which doesn't operate nicely on just a stream). 
 See the individual method documentation.
 
+## Temporary directories
+
+Notably, the with_input_file for S3 needs to copy the file from S3 onto a filesystem.
+It may be that where you want to do that is not the system tmpdir, or even depends
+on the size.
+
+You can set MedusaStorage::Config to set a global value. You can also set the tmp_dir_picker
+of a root to a MedusaStorage::TmpDirPicker for more control. (This can be any object that 
+responds to #pick(size) by returning a temp dir path; the provided class does this
+from a simple spec provided to #new.)
+
+By default a root uses its picker if present, then the MedusaStorage::Config value if present,
+then Dir.tmpdir. Also the with_input_file method allows you to pass in the tmp_dir
+you want to use if you like, which takes precedence over any of those.
+
 ##TODO
 
 Just jotting down some things that need attention that I'm skipping over to get the

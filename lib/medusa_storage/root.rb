@@ -13,13 +13,15 @@
 require 'base64'
 require 'hex_string'
 require 'parallel'
+require 'tmpdir'
 
 class MedusaStorage::Root
 
-  attr_accessor :name
+  attr_accessor :name, :tmp_dir_picker
 
   def initialize(args = {})
     self.name = args[:name]
+    self.tmp_dir_picker = args[:tmp_dir_picker]
   end
 
   #Return a symbol indicating the type of this root
@@ -189,6 +191,14 @@ class MedusaStorage::Root
   def delete_all_content
     Parallel.each(subtree_keys(''), in_threads: 10) do |key|
       delete_content(key)
+    end
+  end
+
+  def pick_tmp_dir(key)
+    if tmp_dir_picker
+      tmp_dir_picker.pick(size(key))
+    else
+      MedusaStorage::Config.tmpdir || Dir.tmpdir
     end
   end
 

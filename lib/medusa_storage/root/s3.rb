@@ -171,7 +171,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def with_input_file(key, tmp_dir: nil)
-    tmp_dir ||= MedusaStorage::Config.tmpdir
+    tmp_dir ||= pick_tmp_dir(key)
     sub_dir = File.join(tmp_dir, SecureRandom.hex(10))
     FileUtils.mkdir_p(sub_dir)
     file_name = File.join(sub_dir, File.basename(key))
