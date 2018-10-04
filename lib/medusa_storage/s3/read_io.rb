@@ -1,3 +1,13 @@
+#This exposes an S3 object as an IO using the io-like gem.
+# This is useful in some circumstances - in particular, we can
+# get an IO on an object without reading all of it into memory at
+# once.
+# However, it's still not a fit for everything. E.g. I tried it with
+# the marcel/mimemagic gems, which seem to do a lot of rewinding. It
+# doesn't work so well for that. It's still best for either reading
+# a small piece of the file seekably, or reading through the entire
+# file while limiting memory usage. Something that does a lot of seeking
+# is probably not going to work that well.
 require 'io/like'
 require_relative '../s3'
 
