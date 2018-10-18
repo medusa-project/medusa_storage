@@ -77,7 +77,7 @@ class MedusaStorage::Root
   def unprefixed_subtree_keys(key)
     prefixed_keys = subtree_keys(key)
     prefix = key.end_with?('/') ? key : key + '/'
-    prefixed_keys.collect {|k| k.sub(/^#{prefix}/, '')}
+    prefixed_keys.collect {|k| k.delete_prefix(prefix)}
   end
 
   #Answer if key represents a directory
