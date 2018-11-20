@@ -1,29 +1,31 @@
 require_relative 'test_helper'
-require_relative 'minio_helper'
 require 'net/http'
 require 'digest'
 require_relative 'time_helper'
 
 class S3PrefixedTest < Minitest::Test
   include TimeHelper
-  
-  def setup
-    @prefix = 'my/prefix/'
-    MinioHelper.install_prefixed_fixtures(@prefix)
-    @root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: MinioHelper.endpoint,
-                                                   bucket: MinioHelper.bucket, region: MinioHelper.region,
-                                                   aws_access_key_id: MinioHelper.access_key,
-                                                   aws_secret_access_key: MinioHelper.secret_key,
-                                                   force_path_style: true, prefix: @prefix)
-    @unprefixed_root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: MinioHelper.endpoint,
-                                                   bucket: MinioHelper.bucket, region: MinioHelper.region,
-                                                   aws_access_key_id: MinioHelper.access_key,
-                                                   aws_secret_access_key: MinioHelper.secret_key,
-                                                   force_path_style: true)
-  end
 
+  @@test_number = 0
+
+  def setup
+    @@test_number += 1
+    @bucket = "prefixed-#{@@test_number}"
+    @prefix = 'my/prefix/'
+    @root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: S3ServerHelper.endpoint,
+                                                   bucket: @bucket, region: S3ServerHelper.region,
+                                                   aws_access_key_id: S3ServerHelper.access_key,
+                                                   aws_secret_access_key: S3ServerHelper.secret_key,
+                                                   force_path_style: true, prefix: @prefix)
+    @unprefixed_root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: S3ServerHelper.endpoint,
+                                                   bucket: @bucket, region: S3ServerHelper.region,
+                                                   aws_access_key_id: S3ServerHelper.access_key,
+                                                   aws_secret_access_key: S3ServerHelper.secret_key,
+                                                   force_path_style: true)
+    S3ServerHelper.setup_bucket_and_fixtures(@bucket, prefix: @prefix)
+  end
+  
   def teardown
-    MinioHelper.remove_fixtures
   end
 
   def assert_exist?(key)
