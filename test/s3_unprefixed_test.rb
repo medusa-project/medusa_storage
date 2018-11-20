@@ -7,7 +7,6 @@ class S3UnprefixedTest < Minitest::Test
 
   include TimeHelper
 
-  system('docker restart medusa-storage-s3-server')
   @@test_number = 0
 
   def setup

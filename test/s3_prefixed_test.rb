@@ -6,7 +6,6 @@ require_relative 'time_helper'
 class S3PrefixedTest < Minitest::Test
   include TimeHelper
 
-  system('docker restart medusa-storage-s3-server')
   @@test_number = 0
 
   def setup

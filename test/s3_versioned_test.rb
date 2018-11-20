@@ -4,8 +4,6 @@ require 'aws-sdk-s3'
 
 class S3VersionedTest < Minitest::Test
 
-  system('docker restart medusa-storage-s3-server')
-
   #set up class variable to track run number
   @@test_number = 0
 
