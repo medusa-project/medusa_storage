@@ -280,18 +280,31 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     internal_subtree_keys(directory_key)
   end
 
+  # def subdirectory_keys(directory_key)
+  #   keys = Array.new
+  #   continuation_token = nil
+  #   loop do
+  #     results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), continuation_token: continuation_token, delimiter: '/')
+  #     #results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), delimiter: '/')
+  #     keys += results.common_prefixes.collect(&:prefix)
+  #     continuation_token = results.next_continuation_token
+  #     #continuation_token = nil
+  #     break if continuation_token.nil?
+  #   end
+  #   return remove_prefix(keys)
+  # end
+
   def subdirectory_keys(directory_key)
-    keys = Array.new
-    continuation_token = nil
+    keys = Set.new
+    marker = nil
+    prefixed_directory_key = add_prefix(ensure_directory_key(directory_key))
     loop do
-      results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), continuation_token: continuation_token, delimiter: '/')
-      #results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), delimiter: '/')
+      results = s3_client.list_objects(bucket: bucket, prefix: prefixed_directory_key, marker: marker, delimiter: '/')
       keys += results.common_prefixes.collect(&:prefix)
-      continuation_token = results.next_continuation_token
-      #continuation_token = nil
-      break if continuation_token.nil?
+      marker = results.next_marker
+      break if marker.nil?
     end
-    return remove_prefix(keys)
+    return remove_prefix(keys.to_a)
   end
 
   #internal method to support getting 'file' type objects
