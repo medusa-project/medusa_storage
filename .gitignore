@@ -11,3 +11,4 @@
 /test/coverage/
 test-config.yml
 test-setup.rb
+.DS_Store

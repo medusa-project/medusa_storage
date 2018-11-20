@@ -23,7 +23,6 @@ class S3UnprefixedTest < Minitest::Test
 
   ###
   # Tests for methods in the MedusaStorage::Root::S3 class, including overrides
-
   def test_root_type
     assert_equal :s3, @root.root_type
     assert @root.is_a?(MedusaStorage::Root::S3)

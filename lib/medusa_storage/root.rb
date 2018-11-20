@@ -14,14 +14,16 @@ require 'base64'
 require 'hex_string'
 require 'parallel'
 require 'tmpdir'
+require_relative 'error/unsupported_operation'
 
 class MedusaStorage::Root
 
-  attr_accessor :name, :tmp_dir_picker
+  attr_accessor :name, :tmp_dir_picker, :versioned
 
   def initialize(args = {})
     self.name = args[:name]
     self.tmp_dir_picker = args[:tmp_dir_picker]
+    self.versioned = args[:versioned] || false
   end
 
   #Return a symbol indicating the type of this root
@@ -200,6 +202,23 @@ class MedusaStorage::Root
     else
       MedusaStorage::Config.tmpdir || Dir.tmpdir
     end
+  end
+
+  ##The following are methods for versioned storages. MedusaStorage::Error::UnsupportedOperation is raised by
+  # default, but versioned storages should do the logical things. This will probably require some rework if/when
+  # we want to support non-S3 versioned things, so as to make it more generic
+  #
+  # object_versions can be :all (default), :latest, or :old, and only keeps the appropriate versions
+  # delete_marker_handling can optionally be :remove (which removes them) or :only (which removes others). Any other
+  # value keeps everything
+  def versions(key, object_versions: :all, delete_marker_handling: nil)
+    raise MedusaStorage::Error::UnsupportedOperation
+  end
+
+  #Delete all versions under directory_key
+  # TODO: possibly make this able to do things like just delete old versions. But we don't need that now.
+  def delete_tree_versions(directory_key)
+    raise MedusaStorage::Error::UnsupportedOperation
   end
 
 end

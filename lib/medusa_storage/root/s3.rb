@@ -65,7 +65,11 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def s3_object(key)
-    Aws::S3::Resource.new(client: s3_client).bucket(bucket).object(add_prefix(key))
+    s3_bucket.object(add_prefix(key))
+  end
+
+  def s3_bucket
+    Aws::S3::Resource.new(client: s3_client).bucket(bucket)
   end
 
   def presigner
@@ -319,6 +323,49 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   def can_s3_copy_to?(target_name)
     copy_targets.include?(target_name)
+  end
+
+  def versions(key, object_versions: :all, delete_marker_handling: nil)
+    check_versioning
+    delimited_prefix_versions(key, exact_match: true, object_versions: object_versions, delete_marker_handling: delete_marker_handling)
+  end
+
+  #Note this is a bit different than the object analogs, because we don't necessarily want to enforce the key
+  # being a directory key - in fact, that might not even turn out to be an important use case
+  def delimited_prefix_versions(key, exact_match: false, delimiter: '/', object_versions: :all, delete_marker_handling: nil)
+    prefixed_key = add_prefix(key)
+    versions = s3_bucket.object_versions(prefix: prefixed_key, delimiter: delimiter).to_a
+    versions.select! {|version| version.key == prefixed_key} if exact_match
+    case object_versions
+    when :old
+      versions.reject! {|version| version.is_latest}
+    when :latest
+      versions.select! {|version| version.is_latest}
+    end
+    case delete_marker_handling
+    when :remove
+      versions.reject! {|version| delete_marker?(version)}
+    when :only
+      versions.select! {|version| delete_marker?(version)}
+    end
+    versions.collect do |version|
+      {key: remove_prefix_single(version.key), version_id: version.id, is_latest: version.is_latest,
+       is_delete_marker: delete_marker?(version), version_object: version}
+    end
+  end
+
+  def delete_marker?(s3_version)
+    s3_version.data.is_a?(Aws::S3::Types::DeleteMarkerEntry)
+  end
+
+  def delete_tree_versions(prefix)
+    check_versioning
+    prefixed_key = add_prefix(ensure_directory_key(prefix))
+    s3_bucket.object_versions(prefix: prefixed_key).batch_delete!
+  end
+
+  def check_versioning
+    raise MedusaStorage::Error::UnsupportedOperation unless versioned
   end
 
 end
