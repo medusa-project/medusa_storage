@@ -12,11 +12,7 @@ class S3UnprefixedTest < Minitest::Test
   def setup
     @@test_number += 1
     @bucket = "unprefixed-#{@@test_number}"
-    @root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: S3ServerHelper.endpoint,
-                                                   bucket: @bucket, region: S3ServerHelper.region,
-                                                   aws_access_key_id: S3ServerHelper.access_key,
-                                                   aws_secret_access_key: S3ServerHelper.secret_key,
-                                                   force_path_style: true)
+    @root = MedusaStorage::RootFactory.create_root(S3ServerHelper.root_args(@bucket))
     S3ServerHelper.setup_bucket_and_fixtures(@bucket)
   end
 

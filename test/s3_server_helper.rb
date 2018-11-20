@@ -36,4 +36,12 @@ module S3ServerHelper
     File.join(File.dirname(__FILE__ ), 'fixtures')
   end
 
+  def root_args(bucket_name, additional_args = {})
+    {type: 's3', name: 's3', endpoint: S3ServerHelper.endpoint,
+     bucket: bucket_name, region: S3ServerHelper.region,
+     aws_access_key_id: S3ServerHelper.access_key,
+     aws_secret_access_key: S3ServerHelper.secret_key,
+     force_path_style: true}.merge(additional_args)
+  end
+
 end

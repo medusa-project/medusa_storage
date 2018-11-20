@@ -12,16 +12,8 @@ class S3PrefixedTest < Minitest::Test
     @@test_number += 1
     @bucket = "prefixed-#{@@test_number}"
     @prefix = 'my/prefix/'
-    @root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: S3ServerHelper.endpoint,
-                                                   bucket: @bucket, region: S3ServerHelper.region,
-                                                   aws_access_key_id: S3ServerHelper.access_key,
-                                                   aws_secret_access_key: S3ServerHelper.secret_key,
-                                                   force_path_style: true, prefix: @prefix)
-    @unprefixed_root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: S3ServerHelper.endpoint,
-                                                   bucket: @bucket, region: S3ServerHelper.region,
-                                                   aws_access_key_id: S3ServerHelper.access_key,
-                                                   aws_secret_access_key: S3ServerHelper.secret_key,
-                                                   force_path_style: true)
+    @root = MedusaStorage::RootFactory.create_root(S3ServerHelper.root_args(@bucket, prefix: @prefix))
+    @unprefixed_root = MedusaStorage::RootFactory.create_root(S3ServerHelper.root_args(@bucket))
     S3ServerHelper.setup_bucket_and_fixtures(@bucket, prefix: @prefix)
   end
   
