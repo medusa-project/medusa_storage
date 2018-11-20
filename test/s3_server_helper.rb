@@ -17,7 +17,7 @@ module S3ServerHelper
     'us-east-1'
   end
 
-  def setup_bucket_and_fixtures(bucket_name, prefix: nil)
+  def setup_bucket_and_fixtures(bucket_name, prefix: nil, copy_fixtures: true, versioned: false)
     #credentials = Aws::Credentials.new(access_key, secret_key)
     #client = Aws::S3::Client.new(credentials: @credentials, endpoint: S3ServerHelper.endpoint, force_path_style: true, region: S3ServerHelper.region)
     #Sometimes I get an error creating the bucket in s3-server, coming from the AWS SDK:
@@ -25,15 +25,22 @@ module S3ServerHelper
     # In this case, configure rclone and use it to create. I haven't seen problems for other operations.
     #@client.create_bucket(bucket: @bucket)
     system("rclone mkdir medusa-storage-s3-server:#{bucket_name}")
-    if prefix
-      system("rclone copy #{fixture_location} medusa-storage-s3-server:#{bucket_name}/#{prefix}")
-    else
-      system("rclone copy #{fixture_location} medusa-storage-s3-server:#{bucket_name}")
+    if versioned
+      credentials = Aws::Credentials.new(access_key, secret_key)
+      client = Aws::S3::Client.new(credentials: credentials, endpoint: S3ServerHelper.endpoint, force_path_style: true, region: S3ServerHelper.region)
+      client.put_bucket_versioning(bucket: bucket_name, versioning_configuration: {status: "Enabled"})
+    end
+    if copy_fixtures
+      if prefix
+        system("rclone copy #{fixture_location} medusa-storage-s3-server:#{bucket_name}/#{prefix}")
+      else
+        system("rclone copy #{fixture_location} medusa-storage-s3-server:#{bucket_name}")
+      end
     end
   end
 
   def fixture_location
-    File.join(File.dirname(__FILE__ ), 'fixtures')
+    File.join(File.dirname(__FILE__), 'fixtures')
   end
 
   def root_args(bucket_name, additional_args = {})

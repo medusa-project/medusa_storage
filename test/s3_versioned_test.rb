@@ -4,12 +4,6 @@ require 'aws-sdk-s3'
 
 class S3VersionedTest < Minitest::Test
 
-  #make sure docker s3-server is started
-  # bin_dir = File.join(File.dirname(__FILE__), "..", 'bin')
-  # Dir.chdir(bin_dir) do
-  #   system('bash stop-s3server.sh')
-  #   system('bash start-s3server.sh')
-  # end
   system('docker restart medusa-storage-s3-server')
 
   #set up class variable to track run number
@@ -18,28 +12,8 @@ class S3VersionedTest < Minitest::Test
   def setup
     @@test_number += 1
     @bucket = "versioned-#{@@test_number}"
-    @root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: S3ServerHelper.endpoint,
-                                                   bucket: @bucket, region: S3ServerHelper.region,
-                                                   aws_access_key_id: S3ServerHelper.access_key,
-                                                   aws_secret_access_key: S3ServerHelper.secret_key,
-                                                   force_path_style: true, versioned: true)
-    setup_bucket
-  end
-
-  def setup_bucket
-    @credentials = Aws::Credentials.new(S3ServerHelper.access_key, S3ServerHelper.secret_key)
-    @client = Aws::S3::Client.new(credentials: @credentials, endpoint: S3ServerHelper.endpoint, force_path_style: true, region: S3ServerHelper.region)
-    #Sometimes I get an error creating the bucket in s3-server, coming from the AWS SDK:
-    # Minitest::UnexpectedError: Seahorse::Client::NetworkingError: end of file reached
-    # In this case, configure rclone and use it to create. I haven't seen problems for other operations.
-    #@client.create_bucket(bucket: @bucket)
-    system("rclone mkdir medusa-storage-s3-server:#{@bucket}")
-    @client.put_bucket_versioning(bucket: @bucket, versioning_configuration: {
-                                          status: "Enabled"})
-  end
-
-  def teardown
-
+    @root = MedusaStorage::RootFactory.create_root(S3ServerHelper.root_args(@bucket, versioned: true))
+    S3ServerHelper.setup_bucket_and_fixtures(@bucket, copy_fixtures: false, versioned: true)
   end
 
   def test_versions_count

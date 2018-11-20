@@ -6,6 +6,7 @@ require_relative 'time_helper'
 class S3PrefixedTest < Minitest::Test
   include TimeHelper
 
+  system('docker restart medusa-storage-s3-server')
   @@test_number = 0
 
   def setup
@@ -16,9 +17,7 @@ class S3PrefixedTest < Minitest::Test
     @unprefixed_root = MedusaStorage::RootFactory.create_root(S3ServerHelper.root_args(@bucket))
     S3ServerHelper.setup_bucket_and_fixtures(@bucket, prefix: @prefix)
   end
-  
-  def teardown
-  end
+
 
   def assert_exist?(key)
     assert @root.exist?(key)
