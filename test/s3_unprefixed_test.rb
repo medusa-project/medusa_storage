@@ -8,17 +8,36 @@ class S3UnprefixedTest < Minitest::Test
 
   include TimeHelper
 
+  @@test_number = 0
+
   def setup
-    MinioHelper.install_fixtures
-    @root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: MinioHelper.endpoint,
-                                                   bucket: MinioHelper.bucket, region: MinioHelper.region,
-                                                   aws_access_key_id: MinioHelper.access_key,
-                                                   aws_secret_access_key: MinioHelper.secret_key,
+    @@test_number += 1
+    @bucket = "unprefixed-#{@@test_number}"
+    @root = MedusaStorage::RootFactory.create_root(type: 's3', name: 's3', endpoint: S3ServerHelper.endpoint,
+                                                   bucket: @bucket, region: S3ServerHelper.region,
+                                                   aws_access_key_id: S3ServerHelper.access_key,
+                                                   aws_secret_access_key: S3ServerHelper.secret_key,
                                                    force_path_style: true)
+    setup_bucket_and_fixtures
+  end
+
+  def setup_bucket_and_fixtures
+    @credentials = Aws::Credentials.new(S3ServerHelper.access_key, S3ServerHelper.secret_key)
+    @client = Aws::S3::Client.new(credentials: @credentials, endpoint: S3ServerHelper.endpoint, force_path_style: true, region: S3ServerHelper.region)
+    #Sometimes I get an error creating the bucket in s3-server, coming from the AWS SDK:
+    # Minitest::UnexpectedError: Seahorse::Client::NetworkingError: end of file reached
+    # In this case, configure rclone and use it to create. I haven't seen problems for other operations.
+    #@client.create_bucket(bucket: @bucket)
+    system("rclone mkdir medusa-storage-s3-server:#{@bucket}")
+    system("rclone copy #{fixture_location} medusa-storage-s3-server:#{@bucket}")
+  end
+
+  def fixture_location
+    '/Users/hding2/repos/medusa_storage/test/fixtures'
   end
 
   def teardown
-    MinioHelper.remove_fixtures
+
   end
 
   ###

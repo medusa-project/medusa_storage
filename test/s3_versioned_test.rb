@@ -29,12 +29,10 @@ class S3VersionedTest < Minitest::Test
   def setup_bucket
     @credentials = Aws::Credentials.new(S3ServerHelper.access_key, S3ServerHelper.secret_key)
     @client = Aws::S3::Client.new(credentials: @credentials, endpoint: S3ServerHelper.endpoint, force_path_style: true, region: S3ServerHelper.region)
-    # @client.create_bucket(bucket: @bucket)
-    # @client.put_bucket_versioning(bucket: @bucket, versioning_configuration: {
-    #                                       status: "Enabled"})
-    # @resource = Aws::S3::Resource.new(client: @client)
-    # bucket = @resource.create_bucket(bucket: @bucket)
-    # bucket.wait_until_exists
+    #Sometimes I get an error creating the bucket in s3-server, coming from the AWS SDK:
+    # Minitest::UnexpectedError: Seahorse::Client::NetworkingError: end of file reached
+    # In this case, configure rclone and use it to create. I haven't seen problems for other operations.
+    #@client.create_bucket(bucket: @bucket)
     system("rclone mkdir medusa-storage-s3-server:#{@bucket}")
     @client.put_bucket_versioning(bucket: @bucket, versioning_configuration: {
                                           status: "Enabled"})
