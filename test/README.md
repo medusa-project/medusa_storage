@@ -1,5 +1,10 @@
 ## Minio usage
 
+Update: I've had to add scality s3-server (via Docker) and rclone to the mix for testing.
+The former is because it supports versioned buckets, unlike minio. The latter is because
+I was having some problems making buckets on s3-server using the AWS SDK. I will give
+more details later. I think I'll be able to remove minio entirely and just use this setup, though.
+
 The tests assume there is a working minio
 installation running on the local host. The general idea
 is that there is a fixture bucket committed to source control.
