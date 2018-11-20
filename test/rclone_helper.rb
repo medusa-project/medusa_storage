@@ -2,7 +2,7 @@ module RcloneHelper
   module_function
 
   def run(*args)
-    system('rclone', *args)
+    system('rclone', *args, '--config', File.join(File.dirname(__FILE__), 'rclone.conf'))
   end
 
   def make_bucket(bucket_name)
