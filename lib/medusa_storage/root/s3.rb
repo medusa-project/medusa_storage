@@ -285,8 +285,10 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     continuation_token = nil
     loop do
       results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), continuation_token: continuation_token, delimiter: '/')
+      #results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), delimiter: '/')
       keys += results.common_prefixes.collect(&:prefix)
       continuation_token = results.next_continuation_token
+      #continuation_token = nil
       break if continuation_token.nil?
     end
     return remove_prefix(keys)
@@ -294,14 +296,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
 
   #internal method to support getting 'file' type objects
   def internal_subtree_keys(directory_key, delimiter: nil)
-    keys = Array.new
-    continuation_token = nil
-    loop do
-      results = s3_client.list_objects_v2(bucket: bucket, prefix: add_prefix(ensure_directory_key(directory_key)), continuation_token: continuation_token, delimiter: delimiter)
-      keys += results.contents.collect(&:key).reject {|key| directory_key?(key)}
-      continuation_token = results.next_continuation_token
-      break if continuation_token.nil?
-    end
+    keys = s3_bucket.objects(prefix: add_prefix(ensure_directory_key(directory_key)), delimiter: delimiter).collect(&:key)
     return remove_prefix(keys)
   end
 
