@@ -78,57 +78,17 @@ you want to use if you like, which takes precedence over any of those.
 Just jotting down some things that need attention that I'm skipping over to get the
 broad outlines in place.
 
-* methods to copy/move within a root and to copy from one root to another
 * Metadata beyond mtime and md5_sum. Send as headers to S3 or set on filesystem as appropriate
   and possible. I'm not sure if there is anything else we're really keeping track of here.
-* Tests, of course. They'd be particularly valuable here.
 * Possibly a metadata updater for S3. This is done by copying the object over itself 
   with new metadata and setting the metadata_directive to 'REPLACE'. See the S3 docs. Note
   that this may only work for objects < 5GB (above that it looks like you can still make
-  a copy, but have to use the multi-part uploader)
-* I'm not currently specifying Content-Length for S3 - that might turn out to be
-  necessary.
-* uploads over 5GB to S3 can't use put_object, they have to go multipart. So, figure out
-  how to deal with that (will also be a problem with copying, possibly - note that
-  for copying we can potentially use a special method upload_part_copy to copy from
-  an existing object). We might need to bring in rclone for that if we want to keep
-  it simple. It would be aesthetically preferable to use the multipart upload 
-  facility, but in that case there may be issues actually getting the parts. How do
-  we get a ruby IO on just part of a file? If we go the rclone route, then we need to 
-  have it configured for everything, and then there is a legitimate question of why
-  not just use it for as many of these operations as possible?
-  https://www.inkoop.in/blog/upload-a-file-using-multipart-to-glacier-in-ruby/ has
-  some suggestions that may work for the non-glacier case as well.
-  or, it looks like there may be an upload manager in the ruby s3 sdk - I just need
-  to find it if so: https://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu-ruby-sdk.html
-  https://aws.amazon.com/blogs/developer/uploading-files-to-amazon-s3/
-  The difficulty here is that it may only work on files. Something like:
-  s3.bucket('bucket-name').object('key').upload_file('/source/file/path', metadata: {key: value})
-  with s3 = Aws::S3::Resource.new(
-         credentials: Aws::Credentials.new('akid', 'secret'),
-         region: 'us-west-1'
-       )
-  See also upload_stream, (which appears not to be its own method, but a way 
-  of using upload_file??) obj.upload_file do |stream|
-    while input_io
-      stream << input_io
-    end
-  end
-  Actually this appears to be very recently added, so let's update and try again.
-  upload_stream appears to work fine, except that I don't see how to get it to do
-  an md5 check. If we insist on knowing the size, we could dispatch on it before, use
-  this only for large files, upload, then do an md5 check afterward on the uploaded
-  content. Time consuming, but safe. Or, does the multipart uploader handle this
-  automatically?
-  Note that the Etag computed by S3 for a simple upload is the md5 sum. For a
-  multipart upload, it is formed by taking the md5sum of each part, representing
-  in binary form, concatenating in order, taking the md5 of that string, and 
-  appending a '-' and then the part count. So no easy way to get at it, or to
-  give AWS a single md5 sum to check against at the end. So recomputing it after
-  the upload may be the only way to go here.
-  Note that the copy_to method on these objects allows for multipart copying of
-  objects, possibly with metadata replacement. So this might be useful for us.
-  Actually it should be fairly easy to generate that ETag as we go along, but
-  it's unclear yet if there is benefit to doing so. 
+  a copy, but have to use the multi-part uploader)  
   
+## Limitations
+
+* JRuby is currently (9.2.4.0) incompatible with the S3 copy_io_to_large method. 
+So it won't correctly do files over 5GB. Note that the underlying SDK upload_stream
+method is documented to have difficulties with JRuby. It will not always fail, but
+it does unpredictably and seemingly frequently.
 
