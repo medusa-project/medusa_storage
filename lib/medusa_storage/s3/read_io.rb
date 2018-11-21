@@ -56,6 +56,7 @@ class MedusaStorage::S3::ReadIO
   end
 
   def unbuffered_seek(offset, whence = IO::SEEK_SET)
+    old_position = self.position
     case whence
     when IO::SEEK_SET, :SET
       self.position = offset
@@ -66,7 +67,11 @@ class MedusaStorage::S3::ReadIO
     else
       raise "Unrecognized seek whence: #{whence}"
     end
-    raise "Seek out of range: position #{position} not in 0-#{size - 1}" unless position >= 0 and position <= size
+    unless position >= 0 and position <= size
+      self.position = old_position
+      raise "Seek out of range: position #{position} not in 0-#{size - 1}"
+    end
+    position
   end
 
 end
