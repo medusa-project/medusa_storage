@@ -6,6 +6,7 @@ PATH
       hex_string
       io-like
       parallel (~> 1.12)
+      rake
 
 GEM
   remote: https://rubygems.org/
