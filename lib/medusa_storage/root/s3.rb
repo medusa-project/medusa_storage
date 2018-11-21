@@ -229,6 +229,11 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   AMAZON_PART_SIZE = 5 * 1024 * 1024
   UPLOAD_BUFFER_SIZE = 5 * 1024 * 1024
 
+  #TODO this doesn't (always) work for JRuby. The upload_stream method is documented as having problems with
+  # JRuby up to version 9.something. I've seen a problem even after the documented version, as late as 9.2.4.0.
+  # Currently we don't need this method for JRuby. We should keep watch on it, though, in case we do.
+  # Specifically, when one tries to do an upload sometimes it just hangs. It's also possible that this is
+  # a problem with the s3-server test server's interaction with Jruby. I just don't know
   def copy_io_to_large(key, input_io, md5_sum, metadata = {})
     metadata_headers = Hash.new
     metadata_headers[AMAZON_HEADERS[:md5_sum]] = md5_sum if md5_sum
@@ -237,10 +242,6 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     object_already_exists = object.exists?
     digester = MedusaStorage::EtagCalculator.new(AMAZON_PART_SIZE)
     buffer = ''
-    #maybe this would help with sporadic test failures - especially
-    # if we could set it in the test environment only?
-    #thread_count = RUBY_PLATFORM == 'java' ? 1 : 10
-    #result = object.upload_stream(metadata: metadata_headers, part_size: AMAZON_PART_SIZE, thread_count: thread_count) do |stream|
     result = object.upload_stream(metadata: metadata_headers, part_size: AMAZON_PART_SIZE) do |stream|
       while input_io.read(UPLOAD_BUFFER_SIZE, buffer)
         stream << buffer
