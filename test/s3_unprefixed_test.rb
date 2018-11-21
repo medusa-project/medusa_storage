@@ -282,4 +282,9 @@ class S3UnprefixedTest < Minitest::Test
     end
   end
 
+  def test_get_bytes
+    @root.write_string_to('bytes.txt', "some random string")
+    assert_equal 'random', @root.get_bytes('bytes.txt', 5, 6).string
+  end
+
 end

@@ -260,4 +260,13 @@ class FilesystemTest < Minitest::Test
     end
   end
 
+  def test_version_methods_throw_exception_on_filesystem_root
+    assert_raises MedusaStorage::Error::UnsupportedOperation do
+      @root.versions('file')
+    end
+    assert_raises MedusaStorage::Error::UnsupportedOperation do
+      @root.delete_tree_versions('file/')
+    end
+  end
+
 end
