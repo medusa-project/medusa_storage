@@ -65,11 +65,11 @@ class MedusaStorage::S3::ReadIO
     when IO::SEEK_END, :END
       self.position = size + offset
     else
-      raise "Unrecognized seek whence: #{whence}"
+      raise SystemCallError.new("Unrecognized seek whence: #{whence}", Errno::EINVAL::Errno)
     end
     unless position >= 0 and position <= size
       self.position = old_position
-      raise "Seek out of range: position #{position} not in 0-#{size - 1}"
+      raise SystemCallError.new("Seek out of range: position #{position} not in 0-#{size - 1}", Errno::EINVAL::Errno)
     end
     position
   end

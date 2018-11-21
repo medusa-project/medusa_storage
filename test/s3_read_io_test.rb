@@ -48,8 +48,8 @@ class S3ReadIOTest < Minitest::Test
   def test_seek_bad_whence
     @root.write_string_to('test', 'content')
     io = MedusaStorage::S3::ReadIO.new(@root, 'test')
-    assert_raises RuntimeError do
-      io.seek(4, 'bad whence')
+    assert_raises SystemCallError do
+      io.seek(4, -1)
     end
   end
 
@@ -57,7 +57,7 @@ class S3ReadIOTest < Minitest::Test
     @root.write_string_to('test', 'content')
     io = MedusaStorage::S3::ReadIO.new(@root, 'test')
     [-10, 10].each do |offset|
-      assert_raises RuntimeError do
+      assert_raises SystemCallError do
         io.seek(offset, IO::SEEK_SET)
       end
       assert_equal 0, io.pos
