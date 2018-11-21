@@ -240,7 +240,8 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     #maybe this would help with sporadic test failures - especially
     # if we could set it in the test environment only?
     #thread_count = RUBY_PLATFORM == 'java' ? 1 : 10
-    result = object.upload_stream(metadata: metadata_headers, part_size: AMAZON_PART_SIZE, thread_count: thread_count) do |stream|
+    #result = object.upload_stream(metadata: metadata_headers, part_size: AMAZON_PART_SIZE, thread_count: thread_count) do |stream|
+    result = object.upload_stream(metadata: metadata_headers, part_size: AMAZON_PART_SIZE) do |stream|
       while input_io.read(UPLOAD_BUFFER_SIZE, buffer)
         stream << buffer
         digester << buffer
