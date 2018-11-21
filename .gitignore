@@ -12,3 +12,4 @@
 test-config.yml
 test-setup.rb
 .DS_Store
+Gemfile.lock
