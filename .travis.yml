@@ -11,7 +11,8 @@ services:
 
 before_install:
 - sudo apt-get update
-- sudo apt-get install -y rclone
+- sudo apt-get install -y curl
+- curl https://rclone.org/install.sh | sudo bash
 - docker pull scality/s3server:mem-latest
 - docker run -d -p 18000:8000 --name medusa-storage-s3-server scality/s3server:mem-latest
 
