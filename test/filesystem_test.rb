@@ -86,8 +86,8 @@ class FilesystemTest < Minitest::Test
 
   def test_subdirectory_keys
     assert_equal ['child'], @root.subdirectory_keys('')
-    assert_equal ['child/grandchild-1', 'child/grandchild-2'],
-                 @root.subdirectory_keys('child')
+    assert_equal ['child/grandchild-1', 'child/grandchild-2'].sort,
+                 @root.subdirectory_keys('child').sort
   end
 
   def test_subtree_keys
@@ -196,7 +196,7 @@ class FilesystemTest < Minitest::Test
     assert @root.exist?('new.txt')
     assert_equal size, @root.size('new.txt')
     assert_equal md5, @root.md5_sum('new.txt')
-    assert_operator now, :<, @root.mtime('new.txt')
+    assert_operator now, :<=, @root.mtime('new.txt')
     assert_equal string, File.read(@root.path_to('new.txt'))
     assert_equal '0640', File.stat(@root.path_to('new.txt')).mode.to_s(8).chars.last(4).join
   end
