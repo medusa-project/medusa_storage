@@ -1,0 +1,19 @@
+sudo: required
+
+language: ruby
+
+rvm:
+  - 2.5.1
+  - jruby
+
+services:
+- docker
+
+before_install:
+- sudo apt-get update
+- sudo apt-get install -y rclone
+- docker pull scality/s3server:mem-latest
+- docker run -d -p 18000:8000 --name medusa-storage-s3-server scality/s3server:mem-latest
+
+script:
+- bundle exec rake test
