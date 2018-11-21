@@ -18,6 +18,4 @@ before_install:
 - docker run -d -p 18000:8000 --name medusa-storage-s3-server scality/s3server:mem-latest
 
 script:
-- bundle exec gem install rake
-- bundle exec which rake
 - bundle exec rake test
