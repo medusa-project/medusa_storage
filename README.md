@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/medusa-project/medusa_storage.svg?branch=master)](https://travis-ci.org/medusa-project/medusa_storage)
+
 # MedusaStorage
 
 This gem exists to hide some of the interaction with underlying storage mechanisms
