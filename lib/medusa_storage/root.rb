@@ -221,4 +221,14 @@ class MedusaStorage::Root
     raise MedusaStorage::Error::UnsupportedOperation
   end
 
+  #Delete a specific version. Note that this may be a delete marker, effectively undeleting an object
+  def delete_version(key, version_id)
+    raise MedusaStorage::Error::UnsupportedOperation
+  end
+
+  #Restore the tree under the directory_key
+  def undelete_tree(directory_key)
+    raise MedusaStorage::Error::UnsupportedOperation
+  end
+
 end

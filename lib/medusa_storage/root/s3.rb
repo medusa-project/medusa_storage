@@ -346,10 +346,32 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
     s3_version.data.is_a?(Aws::S3::Types::DeleteMarkerEntry)
   end
 
+  def delete_version(key, version_id)
+    check_versioning
+    s3_object(key).delete(version_id: version_id)
+  end
+
   def delete_tree_versions(prefix)
     check_versioning
     prefixed_key = add_prefix(ensure_directory_key(prefix))
     s3_bucket.object_versions(prefix: prefixed_key).batch_delete!
+  end
+
+  #TODO - a more natural way to do this would be either:
+  # - to use the bucket resource delete_objects to batch delete - however, this gives an error in the test environment, which
+  # I think may be caused by use of s3-server (it is similar if not the same as the one trying to make a bucket versioned
+  # through aws ruby api calls).
+  # - to call batch_delete on an Aws::S3::ObjectVersion::Collection, as returned by s3_bucket.object_versions - however,
+  # I can't find a way to filter beforehand, or return to that kind of object after doing a select on it (which returns a
+  # normal array).
+  # So for now we settle for doing things naively, though we enlist Parallel to help
+  def undelete_tree(directory_key)
+    check_versioning
+    all_versions = s3_bucket.object_versions(prefix: add_prefix(directory_key))
+    versions_to_delete = all_versions.select {|version| version.is_latest and delete_marker?(version)}
+    Parallel.each(versions_to_delete, in_threads: 10) do |version|
+      delete_version(version.key, version.version_id)
+    end
   end
 
   def check_versioning

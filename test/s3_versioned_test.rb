@@ -71,6 +71,53 @@ class S3VersionedTest < Minitest::Test
     assert_equal 1, remaining_versions.select {|v| v[:is_delete_marker] }.length
   end
 
+  def test_delete_past_version
+    @root.write_string_to('key', 'oldest')
+    @root.write_string_to('key', 'old')
+    @root.write_string_to('key', 'new')
+    versions = @root.versions('key')
+    assert_equal 3, versions.length
+    version_to_delete = versions.detect {|version| !version[:is_latest]}
+    @root.delete_version('key', version_to_delete[:version_id])
+    assert_equal 2, @root.versions('key').length
+    assert_equal 'new', @root.as_string('key')
+  end
+
+  def test_delete_current_version
+    @root.write_string_to('key', 'oldest')
+    @root.write_string_to('key', 'old')
+    @root.write_string_to('key', 'new')
+    version_to_delete = @root.versions('key', object_versions: :latest).first
+    @root.delete_version('key', version_to_delete[:version_id])
+    assert_equal 'old', @root.as_string('key')
+  end
+
+  def test_delete_delete_marker
+    @root.write_string_to('key', 'old')
+    @root.write_string_to('key', 'new')
+    @root.delete_content('key')
+    assert_equal 3, @root.versions('key').length
+    delete_marker = @root.versions('key', delete_marker_handling: :only).first
+    @root.delete_version('key', delete_marker[:version_id])
+    assert_equal 2, @root.versions('key').length
+    assert_equal 'new', @root.as_string('key')
+  end
+
+  def test_undelete_tree
+    @root.write_string_to('delete/normal', 'content')
+    @root.write_string_to('delete/old_delete_marker', 'old')
+    @root.delete_content('delete/old_delete_marker')
+    @root.write_string_to('delete/old_delete_marker', 'new')
+    @root.write_string_to('unaffected', 'constant')
+    @root.delete_content('unaffected')
+    @root.delete_tree('delete/')
+    assert_equal 0, @root.subtree_keys('delete/').count
+    @root.undelete_tree('delete/')
+    assert_equal 'content', @root.as_string('delete/normal')
+    assert_equal 'new', @root.as_string('delete/old_delete_marker')
+    assert_equal 3, @root.versions('delete/old_delete_marker').count
+  end
+
   def test_version_methods_throw_exception_on_unversioned_root
     @root.versioned = false
     assert_raises MedusaStorage::Error::UnsupportedOperation do
@@ -78,6 +125,12 @@ class S3VersionedTest < Minitest::Test
     end
     assert_raises MedusaStorage::Error::UnsupportedOperation do
       @root.delete_tree_versions('file/')
+    end
+    assert_raises MedusaStorage::Error::UnsupportedOperation do
+      @root.delete_version('key', 'version_id')
+    end
+    assert_raises MedusaStorage::Error::UnsupportedOperation do
+      @root.undelete_tree('file/')
     end
   end
 
