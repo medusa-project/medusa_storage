@@ -208,9 +208,9 @@ class MedusaStorage::Root
   # default, but versioned storages should do the logical things. This will probably require some rework if/when
   # we want to support non-S3 versioned things, so as to make it more generic
   #
-  # object_versions can be :all (default), :latest, or :old, and only keeps the appropriate versions
-  # delete_marker_handling can optionally be :remove (which removes them) or :only (which removes others). Any other
-  # value keeps everything
+  # object_versions can be :all (default), :latest, or :old, and only lists the appropriate versions
+  # delete_marker_handling can optionally be :remove (which removes them from the list) or :only (which removes others from the list).
+  # Any other value keeps everything in the list.
   def versions(key, object_versions: :all, delete_marker_handling: nil)
     raise MedusaStorage::Error::UnsupportedOperation
   end
