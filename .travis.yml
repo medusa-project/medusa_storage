@@ -5,7 +5,8 @@ cache: bundler
 
 rvm:
   - 2.5.1
-  - jruby
+  - 2.6.1
+  - jruby-9.2.0.0
 
 services:
 - docker
