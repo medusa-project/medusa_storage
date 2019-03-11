@@ -267,7 +267,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def file_keys(directory_key)
-    internal_subtree_keys(directory_key, delimiter: '/')
+    internal_subtree_keys(directory_key, delimiter: '/').reject {|key| key.match(/\/$/)}
   end
 
   def subtree_keys(directory_key)
