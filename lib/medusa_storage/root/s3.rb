@@ -24,6 +24,7 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   # and mtime is seconds since the epoch, same as ruby Time.to_i
   AMAZON_HEADERS = {
       md5_sum: 'md5chksum',
+      cloudberry_mtime: 'cb-modifiedtime',
       mtime: 'mtime'
   }
 
@@ -122,8 +123,11 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def mtime(key)
-    if mtime_string = metadata(key)[AMAZON_HEADERS[:mtime]]
+    headers = metadata(key)
+    if mtime_string = headers[AMAZON_HEADERS[:mtime]]
       Time.at(mtime_string.to_f)
+    elsif mtime_string = headers[AMAZON_HEADERS[:cloudberry_mtime]]
+      Time.parse(mtime_string)
     else
       nil
     end
