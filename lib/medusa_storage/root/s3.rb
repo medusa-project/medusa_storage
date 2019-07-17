@@ -46,7 +46,8 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def initialize_client_args
-    args = {credentials: s3_credentials, force_path_style: force_path_style}
+    args = {force_path_style: force_path_style}
+    args.merge!(credentials: s3_credentials) if s3_credentials
     args.merge!(endpoint: endpoint) if endpoint
     args.merge!(region: region) if region
     self.client_args = args
@@ -62,7 +63,11 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def s3_credentials
-    Aws::Credentials.new(aws_access_key_id, aws_secret_access_key)
+    if aws_access_key_id and aws_secret_access_key
+      Aws::Credentials.new(aws_access_key_id, aws_secret_access_key)
+    else
+      nil
+    end
   end
 
   def s3_object(key)

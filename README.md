@@ -42,7 +42,11 @@ a relative path starting there.
 An 's3' type root has keys bucket:, aws_access_key_id:, aws_secret_access_key, and region: 
 that take the appropriate Amazon S3 configuration information. There is also an optional
 prefix: key that allows us to specify a prefix inside the bucket that is prepended to
-all key arguments to the various methods. By default this is blank.
+all key arguments to the various methods. By default this is blank. If the aws_access_key_id and
+aws_secret_access_key are not _both_ provided then they are not used when instantiating a client,
+and the client's permissions are controlled by the IAM role instead. This is useful if
+you want to set the bucket access permissions directly on an EC2 instance instead of by using
+the keys, for example. 
 
 There are a set of methods common to the various types of roots as well as some
 specific to a particular one. For example, you can use 'size' with any root, but 
