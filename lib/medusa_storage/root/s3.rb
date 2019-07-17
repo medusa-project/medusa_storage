@@ -63,8 +63,8 @@ class MedusaStorage::Root::S3 < MedusaStorage::Root
   end
 
   def s3_credentials
-    if aws_access_key_id and aws_secret_access_key
-      Aws::Credentials.new(aws_access_key_id, aws_secret_access_key)
+    if self.aws_access_key_id and self.aws_secret_access_key
+      Aws::Credentials.new(self.aws_access_key_id, self.aws_secret_access_key)
     else
       nil
     end
