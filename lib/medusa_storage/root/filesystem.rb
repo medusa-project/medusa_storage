@@ -16,6 +16,11 @@ class MedusaStorage::Root::Filesystem < MedusaStorage::Root
     super(args)
     self.path = args[:path]
     self.pathname = Pathname.new(self.path)
+    begin
+      initialize_real_path
+    rescue Exception => e
+      STDERR.puts "Could not find real path for storage root #{self.name}. Error: #{e}. "
+    end
   end
 
   def real_path=(path)
