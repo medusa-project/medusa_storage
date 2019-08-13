@@ -10,12 +10,23 @@ require_relative '../error/invalid_directory'
 
 class MedusaStorage::Root::Filesystem < MedusaStorage::Root
 
-  attr_accessor :path, :pathname, :real_path
+  attr_accessor :path, :pathname
 
   def initialize(args = {})
     super(args)
     self.path = args[:path]
     self.pathname = Pathname.new(self.path)
+  end
+
+  def real_path=(path)
+    @real_path = path
+  end
+
+  def real_path
+    @real_path || initialize_real_path
+  end
+
+  def initialize_real_path
     self.real_path = self.pathname.realpath.to_s
   end
 
